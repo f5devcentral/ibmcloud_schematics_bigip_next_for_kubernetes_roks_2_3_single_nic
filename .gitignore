@@ -35,3 +35,28 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Keep example tfvars in version control
+!*.tfvars.example
+!*.tfvars.example.backup
+
+# Terraform plan output files
+*.tfplan
+
+# SSH/TLS keys
+*.pem
+*.key
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
