@@ -30,7 +30,7 @@ Ingress and egress flows from an external VPC connected via IBM Cloud Transit Ga
 
 Direct ingress from other Virtual Server Instances (VSIs) in the same VPC as the IBM ROKs cluster.
 
-<img src="./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg" width="700" alt="Same VPC VSI access to IBM ROKs BIG-IP Next for Kubernetes">
+<img src="./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg" width="400" alt="Same VPC VSI access to IBM ROKs BIG-IP Next for Kubernetes">
 
 ## Prerequisites for BIG-IP Virtual Edition DNS Service testing
 
@@ -43,6 +43,12 @@ A DNS Services GSLB Data Center must be deployed so that the BIG-IP Next for Kub
 The GSLB Data Center name will be required for the Terraform `cneinstance_gslb_datacenter_name` variable.
 
 ## Deploying with IBM Schematics
+
+### Deploying a Full IBM Cloud ROKs Cluster for Testing
+
+> Schematics deployment instructions to be added.
+
+### Deploying with an existing IBM Cloud ROKs Cluster
 
 > Schematics deployment instructions to be added.
 
@@ -145,7 +151,7 @@ terraform-cloud-ibm/
 └──────────────────────────────────┘
 ```
 
-**SCC Bindings Detail** — all bindings grant `system:openshift:scc:privileged`:
+**OCP Security Context Constraints Bindings Detail** — all bindings grant `system:openshift:scc:privileged`:
 
 | Module | Namespace | Service Accounts |
 |--------|-----------|------------------|
