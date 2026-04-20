@@ -12,7 +12,7 @@ The engineering demonstration code provides the ability to test the following BI
 
 #### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes ingress Gateway listeners IP Addresses
 
-[insert picture here]
+![BIG-IP Virtual Edition DNS Service provides GSLB to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/BIG_IP_VE_GSLB_TO_IBM_CLOUD_ROKS.svg)
 
 #### IBM cloud TGW attached ingress and egress flows from an external VPC connected test client jumphost or other externally TGW connected clients
 
@@ -95,7 +95,7 @@ terraform-cloud-ibm/
 │  - NAD (Network Attachments)     │
 │  - Node Labels                   │
 │  - F5 Lifecycle Operator Helm    │
-│  - F5 BNK CIS Helm              │
+│  - F5 BNK CIS Helm               │
 │  - BIG-IP Login Secret           │
 │  - privileged SCC:               │
 │      flo-f5-lifecycle-operator   │
@@ -109,7 +109,7 @@ terraform-cloud-ibm/
 │  (CNEInstance Deployment)        │
 │                                  │
 │  - CNEInstance Custom Resource   │
-│  - privileged SCC (f5-bnk ns):  │
+│  - privileged SCC (f5-bnk ns):   │
 │      tmm-sa, f5-dssm,            │
 │      f5-downloader, f5-afm,      │
 │      f5-cne-controller-*,        │
