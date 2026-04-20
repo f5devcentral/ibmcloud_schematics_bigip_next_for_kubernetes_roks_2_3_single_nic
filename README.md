@@ -10,7 +10,8 @@ The engineering demonstration code provides the ability to test the following BI
 
 
 
-#### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes Gateway listeners IP
+#### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes Gateway listeners IP Addresses
+
     - BIG-IP Virtual Edition is installed in an VPC cluster connected to the IBM ROKs Cluster VPC through a IBM Cloud TGW (transit gateway)
 
 #### IBM cloud TGW attached ingress and egress flow from an external VPC connected client
