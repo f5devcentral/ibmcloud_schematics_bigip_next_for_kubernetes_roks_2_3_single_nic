@@ -16,11 +16,11 @@ The engineering demonstration code provides the ability to test the following BI
 
 #### IBM cloud TGW attached ingress and egress flows from an external VPC connected test client jumphost or other externally TGW connected clients
 
-![Test Client access to IBM ROKs BIG-IP Next for Kubernete](./assets/images/TEST_CLIENT_VPC_ACCESS_TO_IBM_ROK_BIG_IP_FOR_KUBERNETES.svg)
+![Test Client access to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/TEST_CLIENT_VPC_ACCESS_TO_IBM_ROK_BIG_IP_FOR_KUBERNETES.svg)
 
 #### In VPC ingress from other VSIs in the same VPC as the IBM ROKs cluster
 
-[insert picture here]
+![Same VPC VSI access to IBM ROKs BIG-iP Next for Kubernetes](./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg)
 
 ## Overview
 
