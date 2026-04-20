@@ -6,19 +6,21 @@
 
 The engineering demonstration code provides the ability to test the following BIG-IP Next for Kubernetes on IBM ROKs cluster features.
 
-#### VPC static route orchestration from BIG-IP Next for Kubernetes cluster controller
+#### VPC static route orchestration from F5 CWC in-cluster controller enabling f5-tmm pod Self-IP next hop addresses for ingress Gateway listener IP addresses and f5-tmm pod Self-IP for egress SNAT addresses
 
+![F5 CWC IBM Cloud VPC route control](./assets/images/F5_CWC_VPC_Router_Control.svg)
 
+#### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes ingress Gateway listeners IP Addresses
 
-#### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes Gateway listeners IP Addresses
+[insert picture here]
 
-    - BIG-IP Virtual Edition is installed in an VPC cluster connected to the IBM ROKs Cluster VPC through a IBM Cloud TGW (transit gateway)
+#### IBM cloud TGW attached ingress and egress flows from an external VPC connected test client jumphost or other externally TGW connected clients
 
-#### IBM cloud TGW attached ingress and egress flow from an external VPC connected client
+[insert picture here]
 
+#### In VPC ingress from other VSIs in the same VPC as the IBM ROKs cluster
 
-#### In VPC ingress and egress from VSIs in the same VPC as the IBM ROKs cluster
-
+[insert picture here]
 
 ## Overview
 
