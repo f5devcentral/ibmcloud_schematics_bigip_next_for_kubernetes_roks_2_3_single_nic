@@ -6,6 +6,13 @@ This Schematics-ready Terraform workspace corresponds to the F5 engineering Marc
 
 ### Testable Deployment Features
 
+#### What's New in 2.3.0-EHF-2-3.2598.3-0.0.17
+
+- Static routing control of VPC routers
+- GSLB disaggregation across IBM Cloud availability zones with BIG-IP Virtual Edition DNS Services
+- External client service delivery through static VPC routes
+- Inter-VPC client service delivery through static VPC routes
+
 The engineering demonstration code provides the ability to test the following BIG-IP Next for Kubernetes on IBM ROKs cluster features.
 
 #### VPC Static Route Orchestration via F5 CWC
