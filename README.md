@@ -12,25 +12,25 @@ The engineering demonstration code provides the ability to test the following BI
 
 F5 CWC controls IBM Cloud VPC static routes, using f5-tmm pod Self-IP addresses as next-hop addresses for ingress Gateway listeners and as egress SNAT addresses.
 
-![F5 CWC IBM Cloud VPC route control](./assets/images/F5_CWC_VPC_Router_Control.svg)
+<img src="./assets/images/F5_CWC_VPC_Router_Control.svg" width="700" alt="F5 CWC IBM Cloud VPC route control">
 
 #### BIG-IP VE DNS Services / GSLB Integration
 
 BIG-IP Virtual Edition DNS Services provides GSLB access to BIG-IP Next for Kubernetes ingress Gateway listener IP addresses.
 
-![BIG-IP Virtual Edition DNS Service provides GSLB to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/BIG_IP_VE_GSLB_TO_IBM_CLOUD_ROKS.svg)
+<img src="./assets/images/BIG_IP_VE_GSLB_TO_IBM_CLOUD_ROKS.svg" width="700" alt="BIG-IP Virtual Edition DNS Service provides GSLB to IBM ROKs BIG-IP Next for Kubernetes">
 
 #### Transit Gateway Client Access
 
 Ingress and egress flows from an external VPC connected via IBM Cloud Transit Gateway (TGW), using a test client jump host or other TGW-connected clients.
 
-![Test Client access to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/TEST_CLIENT_VPC_ACCESS_TO_IBM_ROK_BIG_IP_FOR_KUBERNETES.svg)
+<img src="./assets/images/TEST_CLIENT_VPC_ACCESS_TO_IBM_ROK_BIG_IP_FOR_KUBERNETES.svg" width="700" alt="Test Client access to IBM ROKs BIG-IP Next for Kubernetes">
 
 #### In-VPC Ingress from VSIs
 
 Direct ingress from other Virtual Server Instances (VSIs) in the same VPC as the IBM ROKs cluster.
 
-![Same VPC VSI access to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg)
+<img src="./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg" width="700" alt="Same VPC VSI access to IBM ROKs BIG-IP Next for Kubernetes">
 
 ## Prerequisites for BIG-IP Virtual Edition DNS Service testing
 
@@ -38,7 +38,7 @@ A VPC-deployed BIG-IP Virtual Edition with DNS Services enabled should be deploy
 
 A DNS Services GSLB Data Center must be deployed so that the BIG-IP Next for Kubernetes CWC controller can add Wide IPs and automate Wide IP pool membership with Gateway listener IP addresses.
 
-![Create BIG-IP Virtual Edition DNS Service GSLB Datacenter](./assets/images/BIG_IP_VE_GSLB_DATA_CENTER.png)
+<img src="./assets/images/BIG_IP_VE_GSLB_DATA_CENTER.png" width="600" alt="Create BIG-IP Virtual Edition DNS Service GSLB Datacenter">
 
 The GSLB Data Center name will be required for the Terraform `cneinstance_gslb_datacenter_name` variable.
 
