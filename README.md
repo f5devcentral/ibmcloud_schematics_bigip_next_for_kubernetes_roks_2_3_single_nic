@@ -1,8 +1,27 @@
-# Modular Terraform Configuration - IBM Cloud OpenShift + F5 BNK Orchestrator
+# BIG-IP Next for Kubernetes on IBM ROKs Single NIC Deployment build 2.3.0-ehf-2-3.2598.3-0.0.17
+
+## This Schematics ready terraform workspace corresponds to the F5 engineering March 30th, 2026 demonstration of BIG-IP Next for Kubernetes installed in IBM Cloud ROKs clusters.
+
+### Testable Deployment Features:
+
+The engineering demonstration code provides the ability to test the following BIG-IP Next for Kubernetes on IBM ROKs cluster features.
+
+#### VPC static route orchestration from BIG-IP Next for Kubernetes cluster controller
+
+
+
+#### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes Gateway listeners IP
+    - BIG-IP Virtual Edition is installed in an VPC cluster connected to the IBM ROKs Cluster VPC through a IBM Cloud TGW (transit gateway)
+
+#### IBM cloud TGW attached ingress and egress flow from an external VPC connected client
+
+
+#### In VPC ingress and egress from VSIs in the same VPC as the IBM ROKs cluster
+
 
 ## Overview
 
-This project has been restructured into a modular Terraform configuration that separates cluster creation and F5 BNK orchestrator deployment into independent, reusable modules.
+This project provides Terraform orchestrated configuration of IBM ROKs cluster creation and F5 BIG-IP Next for Kubernetes deployment as independent, reusable modules.
 
 ## Directory Structure
 
@@ -22,13 +41,12 @@ terraform-cloud-ibm/
 │   ├── cert-manager/         # Cert-manager module
 │   │   ├── main.tf           # Cert-manager resources
 │   │   ├── variables.tf      # Cert-manager variables
-│   │   ├── terraform.tf      # Cert-manager provider requirements
 │   │   └── outputs.tf        # Cert-manager outputs
 │   ├── flo/                  # FLO (F5 Lifecycle Operator) module
 │   │   ├── main.tf           # FLO deployment resources (includes CIS helm chart)
 │   │   ├── variables.tf      # FLO module variables
 │   │   ├── outputs.tf        # FLO module outputs
-│   │   └── terraform.tf      # FLO provider requirements
+│   │   └── versions.tf       # FLO provider requirements
 │   ├── cneinstance/          # CNEInstance deployment module
 │   │   ├── main.tf           # CNEInstance resources
 │   │   ├── variables.tf      # CNEInstance variables
@@ -52,7 +70,6 @@ terraform-cloud-ibm/
 │  - OpenShift Cluster             │
 │  - Transit Gateway               │
 │  - COS Instance                  │
-│  - Load Balancer                 │
 └─────────────┬────────────────────┘
               │ (provides kubeconfig)
               ▼
@@ -64,7 +81,7 @@ terraform-cloud-ibm/
 │  - Helm Release                  │
 │  - CRD Registration              │
 └─────────────┬────────────────────┘
-              │ (CRDs now available)
+              │ (cert-manager.io CRDs: ClusterIssuer, Certificate)
               ▼
 ┌──────────────────────────────────┐
 │  3. FLO                          │
@@ -77,7 +94,10 @@ terraform-cloud-ibm/
 │  - F5 Lifecycle Operator Helm    │
 │  - F5 BNK CIS Helm              │
 │  - BIG-IP Login Secret           │
-│  - SCC Policies (FLO + CIS)     │
+│  - privileged SCC:               │
+│      flo-f5-lifecycle-operator   │
+│      f5-bigip-ctlr-serviceaccount│
+│      default (CIS)               │
 └─────────────┬────────────────────┘
               │ (FLO deployed, CRDs ready)
               ▼
@@ -86,7 +106,17 @@ terraform-cloud-ibm/
 │  (CNEInstance Deployment)        │
 │                                  │
 │  - CNEInstance Custom Resource   │
-│  - SCC Policies                  │
+│  - privileged SCC (f5-bnk ns):  │
+│      tmm-sa, f5-dssm,            │
+│      f5-downloader, f5-afm,      │
+│      f5-cne-controller-*,        │
+│      f5-cne-env-discovery-sa     │
+│  - privileged SCC (f5-utils ns): │
+│      crd-installer, cwc,         │
+│      f5-coremond, f5-rabbitmq,   │
+│      f5-observer-operator,       │
+│      f5-ipam-ctlr, otel-sa,      │
+│      f5-crdconversion, default   │
 │  - Pod Health Validation         │
 └─────────────┬────────────────────┘
               │ (License CRD registered)
@@ -195,7 +225,6 @@ terraform destroy -target=module.cneinstance -auto-approve
 terraform destroy -target=module.flo -auto-approve
 terraform destroy -target=module.cert_manager -auto-approve
 terraform destroy -target=module.cluster -auto-approve
-
 ```
 
 ## Configuration
@@ -203,14 +232,19 @@ terraform destroy -target=module.cluster -auto-approve
 ### Module-Level Variables
 
 #### Cluster Module
-- `deploy_bnk`: Flag to enable/disable BNK orchestrator module (default: false)
-- `cluster_name`, `resource_group`, `kube_version`: IBM cluster configuration
-- `ibm_api_key`: IBM Cloud API key for authentication
+- `ibmcloud_api_key`: IBM Cloud API key for authentication
+- `cluster_region`: IBM Cloud region for cluster resources (default: `ca-tor`)
+- `resource_group`: Resource group name (default: account default)
+- `openshift_cluster_name`: Name of the OpenShift cluster (default: `tf-cluster`)
+- `workers_per_zone`: Number of worker nodes per zone (default: `1`)
+- `min_worker_vcpu_count` / `min_worker_memory_gb`: Minimum worker flavor requirements
+- `create_cluster`, `create_client_vpc`, `create_jumphost`, `create_transit_gateway`, `create_cos_instance`: Feature flags
+- `skip_cluster_health_check`: Skip post-create health validation (default: `true`)
 
-#### Cert-Manager Module (NEW)
+#### Cert-Manager Module
 - `enabled`: Enable/disable cert-manager deployment (controlled by deploy_bnk)
-- `cert_manager_namespace`: Kubernetes namespace for cert-manager (default: cert-manager)
-- `chart_version`: Helm chart version (default: v1.17.3)
+- `cert_manager_namespace`: Kubernetes namespace for cert-manager (default: `cert-manager`)
+- `chart_version`: Helm chart version (default: `v1.16.1`)
 - `repository`: Helm repository URL
 - `wait_for_deployment`: Wait for deployment to be ready (default: true)
 - `post_deployment_delay`: Time to wait after deployment for CRD registration (default: 30s)
@@ -241,7 +275,6 @@ terraform destroy -target=module.cluster -auto-approve
 - `jwt_token`: JWT token for F5 license authentication (sensitive)
 - `license_mode`: License operation mode - `connected` or `disconnected` (default: connected)
 - `cneinstance_dependency`: Explicit dependency on CNEInstance module
-
 
 ### Required Variables (terraform.tfvars)
 
@@ -292,7 +325,7 @@ bigip_url      = "https://your-bigip-url"
 f5_bigip_k8s_manifest_version = "YOUR_K8S_MANIFEST_VERSION"
 
 # CNEInstance Configuration
-cneinstance_logging_subsystem      = false
+cneinstance_logging_subsystem      = ""
 cneinstance_metric_subsystem       = false
 cneinstance_firewall_acl           = false
 cneinstance_fluentbit              = false
@@ -349,7 +382,7 @@ bigip_url      = "https://your-bigip-url"
 f5_bigip_k8s_manifest_version = "YOUR_K8S_MANIFEST_VERSION"
 
 # CNEInstance Configuration
-cneinstance_logging_subsystem      = false
+cneinstance_logging_subsystem      = ""
 cneinstance_metric_subsystem       = false
 cneinstance_firewall_acl           = false
 cneinstance_fluentbit              = false
@@ -382,7 +415,6 @@ terraform plan -target=module.cert_manager
 terraform plan -target=module.flo
 terraform plan -target=module.cneinstance
 terraform plan -target=module.license
-
 ```
 
 **List resources by module:**

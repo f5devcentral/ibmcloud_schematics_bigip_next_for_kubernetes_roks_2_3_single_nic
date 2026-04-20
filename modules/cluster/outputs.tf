@@ -23,21 +23,6 @@ output "cluster_vpc_crn" {
   value       = local.cluster_vpc_crn
 }
 
-# output "zone1_prefix_cidr" {
-#   description = "CIDR block for zone 1 address prefix"
-#   value       = var.use_existing_cluster_vpc ? "N/A (using existing VPC)" : ibm_is_vpc_address_prefix.zone1_prefix[0].cidr
-# }
-
-# output "zone2_prefix_cidr" {
-#   description = "CIDR block for zone 2 address prefix"
-#   value       = var.use_existing_cluster_vpc ? "N/A (using existing VPC)" : ibm_is_vpc_address_prefix.zone2_prefix[0].cidr
-# }
-
-# output "zone3_prefix_cidr" {
-#   description = "CIDR block for zone 3 address prefix"
-#   value       = var.use_existing_cluster_vpc ? "N/A (using existing VPC)" : ibm_is_vpc_address_prefix.zone3_prefix[0].cidr
-# }
-
 # Client VPC and Jumphost Outputs (Sydney)
 output "client_vpc_id" {
   description = "ID of the client VPC in Sydney"
@@ -117,15 +102,6 @@ output "openshift_worker_zone3_ip" {
   value       = var.create_cluster ? local.zone3_worker_ip : "Cluster not created"
 }
 
-# output "vpc_routes_summary" {
-#   description = "VPC routes configuration summary"
-#   value = var.create_cluster ? {
-#     zone1 = "${var.zone1_prefix_cidr} -> ${local.zone1_worker_ip}"
-#     zone2 = "${var.zone2_prefix_cidr} -> ${local.zone2_worker_ip}"
-#     zone3 = "${var.zone3_prefix_cidr} -> ${local.zone3_worker_ip}"
-#   } : null
-# }
-
 # Transit Gateway Outputs
 output "transit_gateway_id" {
   description = "ID of the Transit Gateway"
@@ -157,84 +133,9 @@ output "transit_gateway_connections" {
   value = var.create_transit_gateway ? {
     cluster_vpc     = ibm_tg_connection.cluster_vpc_connection[0].name
     client_vpc      = var.create_client_vpc ? ibm_tg_connection.client_vpc_connection[0].name : "Client VPC not created"
-    # gre_connections = var.enable_gre_connections ? [for conn in ibm_tg_connection.gre_redundant : conn.name] : []
   } : null
 }
 
-# GRE Connection Outputs
-# output "gre_connections_details" {
-#   description = "Details of all GRE redundant connections"
-#   value = var.create_transit_gateway && var.enable_gre_connections ? [
-#     for conn in ibm_tg_connection.gre_redundant : {
-#       id      = conn.id
-#       name    = conn.name
-#       status  = conn.status
-#       tunnels = conn.tunnels
-#     }
-#   ] : []
-# }
-
-# output "gre_connections_summary" {
-#   description = "Summary of GRE connections"
-#   value = var.create_transit_gateway && var.enable_gre_connections ? {
-#     total_connections = length(ibm_tg_connection.gre_redundant)
-#     connection_names  = [for conn in ibm_tg_connection.gre_redundant : conn.name]
-#     connection_status = [for conn in ibm_tg_connection.gre_redundant : "${conn.name}: ${conn.status}"]
-#     } : {
-#     total_connections = 0
-#     connection_names  = []
-#     connection_status = []
-#   }
-# }
-
-# output "gre_bgp_config" {
-#   description = "BGP configuration for GRE connections"
-#   value = var.create_transit_gateway && var.enable_gre_connections ? [
-#     for idx, conn in ibm_tg_connection.gre_redundant : {
-#       connection_name = conn.name
-#       local_bgp_asn   = var.gre_connections[idx].local_bgp_asn
-#       remote_bgp_asn  = var.gre_connections[idx].remote_bgp_asn
-#     }
-#   ] : []
-# }
-
-# ============================================================
-# Load Balancer Outputs
-# ============================================================
-
-# output "load_balancer_id" {
-#   description = "ID of the application load balancer"
-#   value       = var.create_cluster && var.enable_load_balancer ? ibm_is_lb.app_lb[0].id : "Load balancer not created"
-# }
-
-# output "load_balancer_hostname" {
-#   description = "Hostname of the application load balancer"
-#   value       = var.create_cluster && var.enable_load_balancer ? ibm_is_lb.app_lb[0].hostname : "Load balancer not created"
-# }
-
-# output "load_balancer_public_ips" {
-#   description = "Public IPs of the application load balancer"
-#   value       = var.create_cluster && var.enable_load_balancer ? ibm_is_lb.app_lb[0].public_ips : []
-# }
-
-# output "load_balancer_private_ips" {
-#   description = "Private IPs of the application load balancer"
-#   value       = var.create_cluster && var.enable_load_balancer ? ibm_is_lb.app_lb[0].private_ips : []
-# }
-
-# output "load_balancer_status" {
-#   description = "Status of the application load balancer"
-#   value       = var.create_cluster && var.enable_load_balancer ? ibm_is_lb.app_lb[0].operating_status : "Load balancer not created"
-# }
-
-# output "load_balancer_pool_members" {
-#   description = "Load balancer pool members (virtual IPs)"
-#   value = var.create_cluster && var.enable_load_balancer ? {
-#     zone1_virtual_ip = var.zone1_virtual_ip
-#     zone2_virtual_ip = var.zone2_virtual_ip
-#     zone3_virtual_ip = var.zone3_virtual_ip
-#   } : {}
-# }
 
 # ============================================================
 # Kubeconfig Outputs

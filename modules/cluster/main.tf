@@ -115,31 +115,6 @@ resource "ibm_is_vpc" "cluster_vpc" {
   tags           = ["terraform", "cluster"]
 }
 
-# Create additional address prefixes for each zone (only if creating new VPC)
-# resource "ibm_is_vpc_address_prefix" "zone1_prefix" {
-#   count = var.use_existing_cluster_vpc ? 0 : 1
-#   name  = "${var.cluster_vpc_name}-zone1-prefix"
-#   vpc   = local.cluster_vpc_id
-#   zone  = local.zones[0]
-#   cidr  = var.zone1_prefix_cidr
-# }
-
-# resource "ibm_is_vpc_address_prefix" "zone2_prefix" {
-#   count = var.use_existing_cluster_vpc ? 0 : 1
-#   name  = "${var.cluster_vpc_name}-zone2-prefix"
-#   vpc   = local.cluster_vpc_id
-#   zone  = local.zones[1]
-#   cidr  = var.zone2_prefix_cidr
-# }
-
-# resource "ibm_is_vpc_address_prefix" "zone3_prefix" {
-#   count = var.use_existing_cluster_vpc ? 0 : 1
-#   name  = "${var.cluster_vpc_name}-zone3-prefix"
-#   vpc   = local.cluster_vpc_id
-#   zone  = local.zones[2]
-#   cidr  = var.zone3_prefix_cidr
-# }
-
 # Get available instance profiles in cluster region for worker node selection
 data "ibm_is_instance_profiles" "cluster_worker_profiles" {
   # Profiles are region-agnostic, but we'll filter based on requirements
@@ -342,7 +317,6 @@ resource "ibm_is_subnet" "cluster_subnet_zone1" {
   zone                     = local.zones[0]
   total_ipv4_address_count = 256
   resource_group           = data.ibm_resource_group.resource_group.id
-  # depends_on               = [ibm_is_vpc_address_prefix.zone1_prefix]
 }
 
 resource "ibm_is_subnet" "cluster_subnet_zone2" {
@@ -352,7 +326,6 @@ resource "ibm_is_subnet" "cluster_subnet_zone2" {
   zone                     = local.zones[1]
   total_ipv4_address_count = 256
   resource_group           = data.ibm_resource_group.resource_group.id
-  # depends_on               = [ibm_is_vpc_address_prefix.zone2_prefix]
 }
 
 resource "ibm_is_subnet" "cluster_subnet_zone3" {
@@ -362,7 +335,6 @@ resource "ibm_is_subnet" "cluster_subnet_zone3" {
   zone                     = local.zones[2]
   total_ipv4_address_count = 256
   resource_group           = data.ibm_resource_group.resource_group.id
-  # depends_on               = [ibm_is_vpc_address_prefix.zone3_prefix]
 }
 
 # Create public gateways for cluster subnets
@@ -409,24 +381,6 @@ resource "ibm_is_subnet_public_gateway_attachment" "cluster_subnet_gateway_zone3
   public_gateway = ibm_is_public_gateway.cluster_gateway_zone3[0].id
 }
 
-# Allow UDP port 6789 from zone prefixes (using cluster security group)
-# resource "ibm_is_security_group_rule" "cluster_udp_6789" {
-#   for_each = var.create_cluster ? {
-#     zone1 = var.zone1_prefix_cidr
-#     zone2 = var.zone2_prefix_cidr
-#     zone3 = var.zone3_prefix_cidr
-#   } : {}
-#
-#   group     = local.cluster_security_group
-#   direction = "inbound"
-#   remote    = each.value
-#   protocol  = "udp"
-#   port_min  = 6789
-#   port_max  = 6789
-#
-#   depends_on = [ibm_container_vpc_cluster.openshift_cluster]
-# }
-
 # Allow TCP port 80 from any source (using cluster security group)
 resource "ibm_is_security_group_rule" "cluster_tcp_80" {
   count     = var.create_cluster ? 1 : 0
@@ -439,19 +393,6 @@ resource "ibm_is_security_group_rule" "cluster_tcp_80" {
 
   depends_on = [ibm_container_vpc_cluster.openshift_cluster]
 }
-
-# Allow TCP port 8050 from any source (using cluster security group)
-# resource "ibm_is_security_group_rule" "cluster_tcp_8050" {
-#   count     = var.create_cluster ? 1 : 0
-#   group     = local.cluster_security_group
-#   direction = "inbound"
-#   remote    = "0.0.0.0/0"
-#   protocol  = "tcp"
-#   port_min  = 8050
-#   port_max  = 8050
-#
-#   depends_on = [ibm_container_vpc_cluster.openshift_cluster]
-# }
 
 
 # Add inbound rule to cluster VPC default security group to allow all traffic
@@ -527,8 +468,8 @@ resource "ibm_container_vpc_cluster" "openshift_cluster" {
   ]
 }
 
-# Wait for cluster to become healthy with comprehensive checks
-resource "null_resource" "wait_for_cluster_health" {
+# Wait for cluster to be fully ready: state, workers, ingress, then operators
+resource "null_resource" "wait_for_cluster_ready" {
   count = var.create_cluster && !var.skip_cluster_health_check ? 1 : 0
 
   provisioner "local-exec" {
@@ -544,12 +485,10 @@ resource "null_resource" "wait_for_cluster_health" {
       echo "Cluster ID: $CLUSTER_ID"
       echo "=========================================="
 
-      # Function to check cluster state
       check_cluster_state() {
         ibmcloud ks cluster get --cluster "$CLUSTER_ID" --output json 2>/dev/null | python3 -c "import sys, json; print(json.load(sys.stdin).get('state', 'pending'))" 2>/dev/null || echo "pending"
       }
 
-      # Function to check worker status
       check_workers() {
         ibmcloud ks workers --cluster "$CLUSTER_ID" --output json 2>/dev/null | python3 -c "
 import sys, json
@@ -562,7 +501,6 @@ except:
 " 2>/dev/null || echo "0"
       }
 
-      # Function to check ingress status
       check_ingress() {
         ibmcloud ks cluster get --cluster "$CLUSTER_ID" --output json 2>/dev/null | python3 -c "
 import sys, json
@@ -580,16 +518,13 @@ except:
       for i in $(seq 1 $MAX_ATTEMPTS); do
         STATE=$(check_cluster_state)
         echo "[Attempt $i/$MAX_ATTEMPTS] Cluster state: $STATE"
-
         if [ "$STATE" = "normal" ]; then
           echo "✓ Cluster state is normal"
           break
         fi
-
         if [ $i -eq $MAX_ATTEMPTS ]; then
           echo "ERROR: Cluster did not reach 'normal' state within timeout"
         fi
-
         sleep $SLEEP_INTERVAL
       done
 
@@ -600,50 +535,90 @@ except:
       for i in $(seq 1 $MAX_ATTEMPTS); do
         WORKERS_READY=$(check_workers)
         echo "[Attempt $i/$MAX_ATTEMPTS] Workers ready: $WORKERS_READY/$EXPECTED_WORKERS"
-
         if [ "$WORKERS_READY" -ge "$EXPECTED_WORKERS" ]; then
           echo "✓ All $EXPECTED_WORKERS workers are ready"
           WORKERS_FOUND=true
           break
         fi
-
-        sleep 10
+        sleep $SLEEP_INTERVAL
       done
-
       if [ "$WORKERS_FOUND" = "false" ]; then
         echo "WARNING: Not all workers ready within timeout (found $WORKERS_READY/$EXPECTED_WORKERS)"
       fi
 
       echo ""
-      echo "Phase 3: Waiting for Ingress components to be healthy..."
+      echo "Phase 3: Waiting for Ingress to be healthy..."
       INGRESS_FOUND=false
       for i in $(seq 1 $MAX_ATTEMPTS); do
         INGRESS_STATUS=$(check_ingress)
         echo "[Attempt $i/$MAX_ATTEMPTS] Ingress status: $INGRESS_STATUS"
-
         if [ "$INGRESS_STATUS" = "healthy" ]; then
           echo "✓ Ingress is healthy"
           INGRESS_FOUND=true
           break
         fi
-
-        sleep 10
+        sleep $SLEEP_INTERVAL
       done
-
       if [ "$INGRESS_FOUND" = "false" ]; then
         echo "WARNING: Ingress did not reach 'healthy' state (current: $INGRESS_STATUS)"
         echo "This may resolve automatically. Check 'ibmcloud ks ingress status-report get' after apply."
       fi
 
       echo ""
-      echo "=========================================="
-      echo "Cluster Health Validation Complete"
-      echo "=========================================="
-      echo "Cluster State: $(check_cluster_state)"
-      echo "Workers Ready: $(check_workers)/$EXPECTED_WORKERS"
-      echo "Ingress Status: $(check_ingress)"
-      echo "=========================================="
+      echo "Phase 4: Validating cluster operators..."
+      ibmcloud ks cluster config --cluster $CLUSTER_ID --admin > /dev/null 2>&1
+      if ! command -v kubectl &> /dev/null; then
+        echo "WARNING: kubectl not found. Skipping operator validation."
+      else
+        MAX_ATTEMPTS=20
+        for i in $(seq 1 $MAX_ATTEMPTS); do
+          echo "[Attempt $i/$MAX_ATTEMPTS] Checking cluster operators..."
+          if ! kubectl get co &> /dev/null; then
+            echo "  API not ready yet, waiting..."
+            sleep 30
+            continue
+          fi
+          DEGRADED=$(kubectl get co -o json 2>/dev/null | python3 -c "
+import sys, json
+try:
+    operators = json.load(sys.stdin)['items']
+    degraded = [op['metadata']['name'] for op in operators
+                if any(c.get('type') == 'Degraded' and c.get('status') == 'True'
+                       for c in op.get('status', {}).get('conditions', []))]
+    print(len(degraded))
+except:
+    print('999')
+" 2>/dev/null || echo "999")
+          UNAVAILABLE=$(kubectl get co -o json 2>/dev/null | python3 -c "
+import sys, json
+try:
+    operators = json.load(sys.stdin)['items']
+    unavailable = [op['metadata']['name'] for op in operators
+                   if any(c.get('type') == 'Available' and c.get('status') == 'False'
+                          for c in op.get('status', {}).get('conditions', []))]
+    print(len(unavailable))
+except:
+    print('999')
+" 2>/dev/null || echo "999")
+          echo "  Degraded: $DEGRADED | Unavailable: $UNAVAILABLE"
+          if [ "$DEGRADED" = "0" ] && [ "$UNAVAILABLE" = "0" ]; then
+            echo "✓ All cluster operators are healthy!"
+            kubectl get co 2>/dev/null | head -10
+            break
+          fi
+          if [ $i -eq $MAX_ATTEMPTS ]; then
+            echo "WARNING: Some operators are still not ready after timeout"
+            kubectl get co 2>/dev/null || echo "Unable to query operators"
+          fi
+          sleep 30
+        done
+      fi
 
+      echo ""
+      echo "=========================================="
+      echo "Cluster Ready"
+      echo "State: $(check_cluster_state) | Workers: $(check_workers)/$EXPECTED_WORKERS | Ingress: $(check_ingress)"
+      echo "=========================================="
       exit 0
 
     EOT
@@ -658,7 +633,7 @@ data "ibm_container_vpc_cluster" "cluster_info" {
   name              = ibm_container_vpc_cluster.openshift_cluster[0].name
   resource_group_id = data.ibm_resource_group.resource_group.id
 
-  depends_on = [null_resource.wait_for_cluster_health, ibm_container_vpc_cluster.openshift_cluster]
+  depends_on = [null_resource.wait_for_cluster_ready, ibm_container_vpc_cluster.openshift_cluster]
 }
 
 # Get the cluster security group by name pattern kube-<cluster_id>
@@ -690,145 +665,6 @@ locals {
 
   # Get cluster security group from data source
   cluster_security_group = var.create_cluster && length(data.ibm_is_security_group.cluster_sg) > 0 ? data.ibm_is_security_group.cluster_sg[0].id : null
-}
-
-# Create new VPC routing table for cluster
-# resource "ibm_is_vpc_routing_table" "cluster_routing_table" {
-#   count                         = var.create_cluster ? 1 : 0
-#   vpc                           = local.cluster_vpc_id
-#   name                          = "${var.openshift_cluster_name}-routing-table"
-#   advertise_routes_to           = ["transit_gateway"]
-#   route_direct_link_ingress     = false
-#   route_transit_gateway_ingress = true
-#   route_vpc_zone_ingress        = true
-# }
-
-# Add routes for zone prefixes to worker nodes
-# resource "ibm_is_vpc_routing_table_route" "zone_routes" {
-#   for_each = var.create_cluster ? {
-#     zone1 = { zone = local.zones[0], cidr = var.zone1_prefix_cidr, next_hop = local.zone1_worker_ip }
-#     zone2 = { zone = local.zones[1], cidr = var.zone2_prefix_cidr, next_hop = local.zone2_worker_ip }
-#     zone3 = { zone = local.zones[2], cidr = var.zone3_prefix_cidr, next_hop = local.zone3_worker_ip }
-#   } : {}
-#
-#   vpc           = local.cluster_vpc_id
-#   routing_table = ibm_is_vpc_routing_table.cluster_routing_table[0].routing_table
-#   zone          = each.value.zone
-#   name          = "route-${each.key}-prefix"
-#   destination   = each.value.cidr
-#   action        = "deliver"
-#   next_hop      = each.value.next_hop
-#   advertise     = true
-#
-#   depends_on = [data.ibm_container_vpc_cluster_worker.cluster_workers]
-# }
-
-# Validate cluster operators are healthy
-resource "null_resource" "validate_cluster_operators" {
-  count = var.create_cluster && !var.skip_cluster_health_check ? 1 : 0
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      #!/bin/bash
-      set -e
-
-      CLUSTER_ID="${ibm_container_vpc_cluster.openshift_cluster[0].id}"
-
-      echo ""
-      echo "=========================================="
-      echo "Validating Cluster Operators Health"
-      echo "=========================================="
-
-      # Configure kubectl access
-      echo "Configuring kubectl access..."
-      ibmcloud ks cluster config --cluster $CLUSTER_ID --admin > /dev/null 2>&1
-
-      if ! command -v kubectl &> /dev/null; then
-        echo "WARNING: kubectl not found. Skipping operator validation."
-        echo "Install kubectl to enable comprehensive cluster validation."
-        exit 0
-      fi
-
-      # Wait for cluster operators to stabilize
-      echo ""
-      echo "Waiting for cluster operators to stabilize (max 10 minutes)..."
-      MAX_ATTEMPTS=20
-
-      for i in $(seq 1 $MAX_ATTEMPTS); do
-        echo "[Attempt $i/$MAX_ATTEMPTS] Checking cluster operators..."
-
-        # Check if we can query operators
-        if ! kubectl get co &> /dev/null; then
-          echo "  API not ready yet, waiting..."
-          sleep 30
-          continue
-        fi
-
-        # Count degraded operators
-        DEGRADED=$(kubectl get co -o json 2>/dev/null | python3 -c "
-import sys, json
-try:
-    operators = json.load(sys.stdin)['items']
-    degraded = [op['metadata']['name'] for op in operators
-                if any(c.get('type') == 'Degraded' and c.get('status') == 'True'
-                       for c in op.get('status', {}).get('conditions', []))]
-    print(len(degraded))
-except:
-    print('999')
-" 2>/dev/null || echo "999")
-
-        # Count unavailable operators
-        UNAVAILABLE=$(kubectl get co -o json 2>/dev/null | python3 -c "
-import sys, json
-try:
-    operators = json.load(sys.stdin)['items']
-    unavailable = [op['metadata']['name'] for op in operators 
-                   if any(c.get('type') == 'Available' and c.get('status') == 'False' 
-                          for c in op.get('status', {}).get('conditions', []))]
-    print(len(unavailable))
-except:
-    print('999')
-" 2>/dev/null || echo "999")
-
-        echo "  Degraded: $DEGRADED | Unavailable: $UNAVAILABLE"
-
-        if [ "$DEGRADED" = "0" ] && [ "$UNAVAILABLE" = "0" ]; then
-          echo ""
-          echo "✓ All cluster operators are healthy!"
-
-          # Display summary
-          echo ""
-          echo "Cluster Operators Status:"
-          kubectl get co 2>/dev/null | head -10
-
-          if [ $(kubectl get co --no-headers 2>/dev/null | wc -l) -gt 9 ]; then
-            echo "... and $(($(kubectl get co --no-headers 2>/dev/null | wc -l) - 9)) more"
-          fi
-
-          echo ""
-          echo "=========================================="
-          exit 0
-        fi
-
-        if [ $i -eq $MAX_ATTEMPTS ]; then
-          echo ""
-          echo "WARNING: Some operators are still not ready after timeout"
-          echo "This is normal for newly created clusters and they should stabilize shortly."
-          echo ""
-          echo "Current operator status:"
-          kubectl get co 2>/dev/null || echo "Unable to query operators"
-          echo ""
-          echo "=========================================="
-          exit 0
-        fi
-
-        sleep 30
-      done
-
-    EOT
-  }
-
-  # depends_on = [ibm_is_vpc_routing_table_route.zone_routes]
 }
 
 # ============================================================
@@ -864,90 +700,3 @@ resource "ibm_tg_connection" "client_vpc_connection" {
   network_id   = local.client_vpc_crn
 }
 
-# ============================================================
-# GRE Redundant Connections with 2 Tunnels Each
-# ============================================================
-
-# Create multiple redundant GRE connections, each with 2 tunnels (only if enabled)
-# resource "ibm_tg_connection" "gre_redundant" {
-#   count = var.create_transit_gateway && var.enable_gre_connections ? length(var.gre_connections) : 0
-#
-#   gateway           = ibm_tg_gateway.transit_gateway[0].id
-#   name              = var.gre_connections[count.index].name
-#   network_type      = "redundant_gre"
-#   base_network_type = "vpc"
-#   network_id        = local.cluster_vpc_crn
-#
-#   # Dynamic tunnels configuration
-#   dynamic "tunnels" {
-#     for_each = var.gre_connections[count.index].tunnels
-#     content {
-#       name              = tunnels.value.name
-#       local_gateway_ip  = tunnels.value.local_gateway_ip
-#       remote_gateway_ip = tunnels.value.remote_gateway_ip
-#       local_tunnel_ip   = tunnels.value.local_tunnel_ip
-#       remote_tunnel_ip  = tunnels.value.remote_tunnel_ip
-#       zone              = local.zones[0] # Use first available zone dynamically
-#       local_bgp_asn     = var.gre_connections[count.index].local_bgp_asn
-#       remote_bgp_asn    = var.gre_connections[count.index].remote_bgp_asn
-#     }
-#   }
-# }
-
-# ============================================================
-# Application Load Balancer
-# ============================================================
-
-# Create application load balancer (only if enabled)
-# resource "ibm_is_lb" "app_lb" {
-#   count           = var.create_cluster && var.enable_load_balancer ? 1 : 0
-#   name            = var.lb_name
-#   subnets         = [ibm_is_subnet.cluster_subnet_zone1[0].id]
-#   type            = var.lb_is_public ? "public" : "private"
-#   resource_group  = data.ibm_resource_group.resource_group.id
-#   security_groups = [local.cluster_security_group]
-#   tags            = ["terraform", "load-balancer"]
-#
-#   depends_on = [ibm_container_vpc_cluster.openshift_cluster]
-# }
-
-# Create backend pool for the load balancer
-# resource "ibm_is_lb_pool" "app_lb_pool" {
-#   count              = var.create_cluster && var.enable_load_balancer ? 1 : 0
-#   name               = var.lb_pool_name
-#   lb                 = ibm_is_lb.app_lb[0].id
-#   algorithm          = var.lb_pool_algorithm
-#   protocol           = var.lb_listener_protocol
-#   health_delay       = var.lb_health_delay
-#   health_retries     = var.lb_health_retries
-#   health_timeout     = var.lb_health_timeout
-#   health_type        = var.lb_listener_protocol
-#   health_monitor_url = "/"
-#   proxy_protocol     = "disabled"
-# }
-
-# Add zone workers as pool members
-# resource "ibm_is_lb_pool_member" "app_lb_members" {
-#   for_each = var.create_cluster && var.enable_load_balancer ? {
-#     zone1 = var.zone1_virtual_ip
-#     zone2 = var.zone2_virtual_ip
-#     zone3 = var.zone3_virtual_ip
-#   } : {}
-#
-#   lb             = ibm_is_lb.app_lb[0].id
-#   pool           = ibm_is_lb_pool.app_lb_pool[0].pool_id
-#   port           = var.lb_listener_port
-#   target_address = each.value
-#   weight         = 50
-# }
-
-# Create HTTP listener
-# resource "ibm_is_lb_listener" "app_lb_listener" {
-#   count                   = var.create_cluster && var.enable_load_balancer ? 1 : 0
-#   lb                      = ibm_is_lb.app_lb[0].id
-#   protocol                = var.lb_listener_protocol
-#   port                    = var.lb_listener_port
-#   default_pool            = ibm_is_lb_pool.app_lb_pool[0].pool_id
-#   idle_connection_timeout = 50
-#   accept_proxy_protocol   = false
-# }

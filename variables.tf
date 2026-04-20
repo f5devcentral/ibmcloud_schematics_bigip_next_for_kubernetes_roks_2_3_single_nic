@@ -59,43 +59,6 @@ variable "cluster_vpc_name" {
   default     = "tf-cluster-vpc"
 }
 
-# Zone Configuration
-# variable "zone1_prefix_cidr" {
-#   description = "CIDR for zone 1 address prefix"
-#   type        = string
-#   default     = "10.155.15.0/24"
-# }
-
-# variable "zone2_prefix_cidr" {
-#   description = "CIDR for zone 2 address prefix"
-#   type        = string
-#   default     = "10.156.16.0/24"
-# }
-
-# variable "zone3_prefix_cidr" {
-#   description = "CIDR for zone 3 address prefix"
-#   type        = string
-#   default     = "10.157.17.0/24"
-# }
-
-# variable "zone1_virtual_ip" {
-#   description = "Virtual IP for zone 1 load balancer member"
-#   type        = string
-#   default     = "10.155.15.101"
-# }
-
-# variable "zone2_virtual_ip" {
-#   description = "Virtual IP for zone 2 load balancer member"
-#   type        = string
-#   default     = "10.156.16.101"
-# }
-
-# variable "zone3_virtual_ip" {
-#   description = "Virtual IP for zone 3 load balancer member"
-#   type        = string
-#   default     = "10.157.17.101"
-# }
-
 # Client VPC Configuration
 variable "client_vpc_name" {
   description = "Name of the client VPC"
@@ -159,19 +122,6 @@ variable "min_worker_memory_gb" {
   type        = number
   default     = 64
 }
-
-# Load Balancer Configuration
-# variable "enable_load_balancer" {
-#   description = "Enable application load balancer"
-#   type        = bool
-#   default     = false
-# }
-
-# variable "lb_name" {
-#   description = "Name of the load balancer"
-#   type        = string
-#   default     = "tf-lb"
-# }
 
 # Existing Cluster Configuration (for using existing clusters)
 variable "cluster_id_existing" {
@@ -242,7 +192,7 @@ variable "f5_cne_subscription_jwt_file" {
 variable "f5_bigip_k8s_manifest_version" {
   description = "Version of f5-bigip-k8s-manifest chart"
   type        = string
-  default     = ""
+  default     = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
 }
 
 variable "flo_chart_version" {

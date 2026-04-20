@@ -74,21 +74,6 @@ output "openshift_worker_zone3_ip" {
   value       = module.cluster.openshift_worker_zone3_ip
 }
 
-# Load Balancer Outputs
-# output "load_balancer_id" {
-#   description = "ID of the application load balancer"
-#   value       = module.cluster.load_balancer_id
-# }
-
-# output "load_balancer_hostname" {
-#   description = "Hostname of the application load balancer"
-#   value       = module.cluster.load_balancer_hostname
-# }
-
-# output "load_balancer_public_ips" {
-#   description = "Public IPs of the application load balancer"
-#   value       = module.cluster.load_balancer_public_ips
-# }
 # Additional Cluster Module Outputs
 output "openshift_version_used" {
   description = "OpenShift version used for cluster"
@@ -99,21 +84,6 @@ output "available_openshift_versions" {
   description = "All available OpenShift versions in the cluster region"
   value       = module.cluster.available_openshift_versions
 }
-
-# output "zone1_prefix_cidr" {
-#   description = "CIDR block for zone 1 address prefix"
-#   value       = module.cluster.zone1_prefix_cidr
-# }
-
-# output "zone2_prefix_cidr" {
-#   description = "CIDR block for zone 2 address prefix"
-#   value       = module.cluster.zone2_prefix_cidr
-# }
-
-# output "zone3_prefix_cidr" {
-#   description = "CIDR block for zone 3 address prefix"
-#   value       = module.cluster.zone3_prefix_cidr
-# }
 
 # Client VPC Outputs
 output "client_vpc_id" {
@@ -179,45 +149,3 @@ output "transit_gateway_global_routing" {
   value       = module.cluster.transit_gateway_global_routing
 }
 
-# output "transit_gateway_connections" {
-#   description = "Transit gateway connections"
-#   value       = module.cluster.transit_gateway_connections
-# }
-
-# GRE Connections
-# output "gre_connections_details" {
-#   description = "Detailed information about GRE connections"
-#   value       = module.cluster.gre_connections_details
-# }
-
-# output "gre_connections_summary" {
-#   description = "Summary of GRE connections"
-#   value       = module.cluster.gre_connections_summary
-# }
-
-# output "gre_bgp_config" {
-#   description = "BGP configuration for GRE connections"
-#   value       = module.cluster.gre_bgp_config
-# }
-
-# VPC Routes
-# output "vpc_routes_summary" {
-#   description = "Summary of VPC routes"
-#   value       = module.cluster.vpc_routes_summary
-# }
-
-# Load Balancer Additional Outputs
-# output "load_balancer_private_ips" {
-#   description = "Private IPs of the application load balancer"
-#   value       = module.cluster.load_balancer_private_ips
-# }
-
-# output "load_balancer_status" {
-#   description = "Status of the application load balancer"
-#   value       = module.cluster.load_balancer_status
-# }
-
-# output "load_balancer_pool_members" {
-#   description = "Pool members of the application load balancer"
-#   value       = module.cluster.load_balancer_pool_members
-# }

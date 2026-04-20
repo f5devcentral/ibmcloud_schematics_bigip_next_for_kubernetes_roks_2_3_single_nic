@@ -55,14 +55,6 @@ module "cluster" {
   # Cluster VPC Configuration
   cluster_vpc_name = var.cluster_vpc_name
 
-  # Zone Configuration
-  # zone1_prefix_cidr = var.zone1_prefix_cidr
-  # zone2_prefix_cidr = var.zone2_prefix_cidr
-  # zone3_prefix_cidr = var.zone3_prefix_cidr
-  # zone1_virtual_ip  = var.zone1_virtual_ip
-  # zone2_virtual_ip  = var.zone2_virtual_ip
-  # zone3_virtual_ip  = var.zone3_virtual_ip
-
   # Client VPC Configuration
   client_vpc_name      = var.client_vpc_name
   client_vpc_region    = var.client_vpc_region
@@ -81,9 +73,6 @@ module "cluster" {
   min_worker_vcpu_count  = var.min_worker_vcpu_count
   min_worker_memory_gb   = var.min_worker_memory_gb
 
-  # Load Balancer Configuration
-  # enable_load_balancer = var.enable_load_balancer
-  # lb_name              = var.lb_name
 }
 
 # ============================================================
