@@ -1,26 +1,50 @@
 # BIG-IP Next for Kubernetes on IBM ROKs Single NIC Deployment build 2.3.0-ehf-2-3.2598.3-0.0.17
 
-## This Schematics ready terraform workspace corresponds to the F5 engineering March 30th, 2026 demonstration of BIG-IP Next for Kubernetes installed in IBM Cloud ROKs clusters.
+## About This Workspace
 
-### Testable Deployment Features:
+This Schematics-ready Terraform workspace corresponds to the F5 engineering March 30th, 2026 demonstration of BIG-IP Next for Kubernetes installed in IBM Cloud ROKs clusters.
+
+### Testable Deployment Features
 
 The engineering demonstration code provides the ability to test the following BIG-IP Next for Kubernetes on IBM ROKs cluster features.
 
-#### VPC static route orchestration from F5 CWC in-cluster controller enabling f5-tmm pod Self-IP next hop addresses for ingress Gateway listener IP addresses and f5-tmm pod Self-IP for egress SNAT addresses
+#### VPC Static Route Orchestration via F5 CWC
+
+F5 CWC controls IBM Cloud VPC static routes, using f5-tmm pod Self-IP addresses as next-hop addresses for ingress Gateway listeners and as egress SNAT addresses.
 
 ![F5 CWC IBM Cloud VPC route control](./assets/images/F5_CWC_VPC_Router_Control.svg)
 
-#### BIG-IP Virtual Edition DNS Services integration for GSLB access to BIG-IP Next for Kubernetes ingress Gateway listeners IP Addresses
+#### BIG-IP VE DNS Services / GSLB Integration
+
+BIG-IP Virtual Edition DNS Services provides GSLB access to BIG-IP Next for Kubernetes ingress Gateway listener IP addresses.
 
 ![BIG-IP Virtual Edition DNS Service provides GSLB to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/BIG_IP_VE_GSLB_TO_IBM_CLOUD_ROKS.svg)
 
-#### IBM cloud TGW attached ingress and egress flows from an external VPC connected test client jumphost or other externally TGW connected clients
+#### Transit Gateway Client Access
+
+Ingress and egress flows from an external VPC connected via IBM Cloud Transit Gateway (TGW), using a test client jump host or other TGW-connected clients.
 
 ![Test Client access to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/TEST_CLIENT_VPC_ACCESS_TO_IBM_ROK_BIG_IP_FOR_KUBERNETES.svg)
 
-#### In VPC ingress from other VSIs in the same VPC as the IBM ROKs cluster
+#### In-VPC Ingress from VSIs
 
-![Same VPC VSI access to IBM ROKs BIG-iP Next for Kubernetes](./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg)
+Direct ingress from other Virtual Server Instances (VSIs) in the same VPC as the IBM ROKs cluster.
+
+![Same VPC VSI access to IBM ROKs BIG-IP Next for Kubernetes](./assets/images/INTERNAL_VPC_ACCESS_TO_IBM_ROKS_BIG_IP_NEXT_FOR_KUBERNETES.svg)
+
+## Prerequisites for BIG-IP Virtual Edition DNS Service testing
+
+A VPC-deployed BIG-IP Virtual Edition with DNS Services enabled should be deployed in an external VPC and connected through an IBM Cloud TGW to the IBM ROKs cluster VPC.
+
+A DNS Services GSLB Data Center must be deployed so that the BIG-IP Next for Kubernetes CWC controller can add Wide IPs and automate Wide IP pool membership with Gateway listener IP addresses.
+
+![Create BIG-IP Virtual Edition DNS Service GSLB Datacenter](./assets/images/BIG_IP_VE_GSLB_DATA_CENTER.png)
+
+The GSLB Data Center name will be required for the Terraform `cneinstance_gslb_datacenter_name` variable.
+
+## Deploying with IBM Schematics
+
+> Schematics deployment instructions to be added.
 
 ## Overview
 
@@ -97,10 +121,7 @@ terraform-cloud-ibm/
 │  - F5 Lifecycle Operator Helm    │
 │  - F5 BNK CIS Helm               │
 │  - BIG-IP Login Secret           │
-│  - privileged SCC:               │
-│      flo-f5-lifecycle-operator   │
-│      f5-bigip-ctlr-serviceaccount│
-│      default (CIS)               │
+│  - privileged SCC (3 bindings)   │
 └─────────────┬────────────────────┘
               │ (FLO deployed, CRDs ready)
               ▼
@@ -109,17 +130,7 @@ terraform-cloud-ibm/
 │  (CNEInstance Deployment)        │
 │                                  │
 │  - CNEInstance Custom Resource   │
-│  - privileged SCC (f5-bnk ns):   │
-│      tmm-sa, f5-dssm,            │
-│      f5-downloader, f5-afm,      │
-│      f5-cne-controller-*,        │
-│      f5-cne-env-discovery-sa     │
-│  - privileged SCC (f5-utils ns): │
-│      crd-installer, cwc,         │
-│      f5-coremond, f5-rabbitmq,   │
-│      f5-observer-operator,       │
-│      f5-ipam-ctlr, otel-sa,      │
-│      f5-crdconversion, default   │
+│  - privileged SCC (16 bindings)  │
 │  - Pod Health Validation         │
 └─────────────┬────────────────────┘
               │ (License CRD registered)
@@ -133,6 +144,14 @@ terraform-cloud-ibm/
 │  - JWT + Operation Mode          │
 └──────────────────────────────────┘
 ```
+
+**SCC Bindings Detail** — all bindings grant `system:openshift:scc:privileged`:
+
+| Module | Namespace | Service Accounts |
+|--------|-----------|------------------|
+| FLO | `f5-bnk` | `flo-f5-lifecycle-operator`, `f5-bigip-ctlr-serviceaccount`, `default` (CIS) |
+| CNEInstance | `f5-bnk` | `tmm-sa`, `f5-dssm`, `f5-downloader`, `f5-afm`, `f5-cne-controller-*`, `f5-cne-env-discovery-serviceaccount` |
+| CNEInstance | `f5-utils` | `crd-installer`, `cwc`, `f5-coremond`, `f5-rabbitmq`, `f5-observer-operator`, `f5-ipam-ctlr`, `otel-sa`, `f5-crdconversion`, `default` |
 
 ## Installation & Deployment
 
@@ -188,31 +207,31 @@ terraform apply -target=module.license -auto-approve
 
 ### Recommended Deployment Order
 
-Step 1: Deploy Cluster (60-90 min)
+#### Step 1: Deploy Cluster (60–90 min)
 ```bash
 terraform plan -target=module.cluster
 terraform apply -target=module.cluster -auto-approve
 ```
 
-Step 2: Deploy Cert-Manager (2-3 min)
+#### Step 2: Deploy Cert-Manager (2–3 min)
 ```bash
 terraform plan -target=module.cert_manager
 terraform apply -target=module.cert_manager -auto-approve
 ```
 
-Step 3: Deploy FLO (F5 Lifecycle Operator) (5-10 min)
+#### Step 3: Deploy FLO — F5 Lifecycle Operator (5–10 min)
 ```bash
 terraform plan -target=module.flo
 terraform apply -target=module.flo -auto-approve
 ```
 
-Step 4: Deploy CNEInstance (5-10 min)
+#### Step 4: Deploy CNEInstance (5–10 min)
 ```bash
 terraform plan -target=module.cneinstance
 terraform apply -target=module.cneinstance -auto-approve
 ```
 
-Step 5: Deploy License (1-2 min)
+#### Step 5: Deploy License (1–2 min)
 ```bash
 terraform plan -target=module.license
 terraform apply -target=module.license -auto-approve
@@ -281,32 +300,16 @@ terraform destroy -target=module.cluster -auto-approve
 
 ### Required Variables (terraform.tfvars)
 
-**Option A: Create New Cluster + Install FLO (60-90 min)**
+**Shared configuration (both options):**
 ```hcl
-# IBM Cloud API Key (required)
 ibmcloud_api_key = "YOUR_API_KEY"
+cluster_region   = "jp-tok"
 
-# Cluster configuration
-cluster_region         = "jp-tok"
-openshift_cluster_name = "tf-cluster-hk"
-workers_per_zone       = 1
-
-# Feature flags
-create_cluster         = true
-create_client_vpc      = true
-create_jumphost        = true
-create_transit_gateway = true
-create_cos_instance    = true  # Required for OpenShift
-
-# BNK Orchestrator (only if deploy_bnk = true)
-deploy_bnk = false
-
-# FAR Registry Credentials (optional - only needed if deploy_bnk = true)
+# FAR Registry
+far_repo_url = "repo.f5.com"
 #far_service_account_key_path = "/home/dev/dev_pull_64.json"
-far_repo_url                 = "repo.f5.com"
 
-# COS Bucket Configuration (optional - fetch FAR auth key and JWT from COS)
-# Set use_cos_bucket = true to fetch credentials from COS instead of local files
+# COS Bucket — fetch FAR auth key and JWT from IBM COS
 use_cos_bucket                = true
 ibmcloud_cos_bucket_region    = "us-south"
 ibmcloud_cos_instance_name    = "bnk-orchestration"
@@ -314,20 +317,20 @@ ibmcloud_resources_cos_bucket = "bnk-schematics-resources"
 f5_cne_far_auth_file          = "f5-far-auth-key.tgz"
 f5_cne_subscription_jwt_file  = "trial.jwt"
 
-# FLO Configuration
-flo_namespace     = "f5-bnk"
-utils_namespace   = "f5-utils"
-license_mode      = "connected"
+# FLO
+flo_namespace   = "f5-bnk"
+utils_namespace = "f5-utils"
+license_mode    = "connected"
 
-# BIG-IP CIS Configuration (optional)
+# BIG-IP CIS (optional)
 bigip_username = "admin"
 bigip_password = "YOUR_BIGIP_PASSWORD"
 bigip_url      = "https://your-bigip-url"
 
-# F5 BIG-IP K8s Manifest Version
+# Manifest version
 f5_bigip_k8s_manifest_version = "YOUR_K8S_MANIFEST_VERSION"
 
-# CNEInstance Configuration
+# CNEInstance
 cneinstance_logging_subsystem      = ""
 cneinstance_metric_subsystem       = false
 cneinstance_firewall_acl           = false
@@ -338,66 +341,36 @@ cneinstance_cloud_region           = ""
 cneinstance_ibm_trusted_profile_id = ""
 cneinstance_gslb_datacenter_name   = ""
 
-# Certificate Manager Configuration
+# cert-manager
 cert_manager_namespace = "cert-manager"
-cert_manager_version = "v1.16.1"
+cert_manager_version   = "v1.16.1"
 ```
 
-**Option B: Use Existing Cluster + Install FLO (5-10 min)**
+**Option A — create new cluster (60–90 min):**
 ```hcl
-ibmcloud_api_key = "YOUR_API_KEY"
-cluster_region   = "jp-tok"
+openshift_cluster_name = "tf-cluster"
+workers_per_zone       = 1
 
-# Use existing cluster (set create_cluster to false)
+create_cluster         = true
+create_client_vpc      = true
+create_jumphost        = true
+create_transit_gateway = true
+create_cos_instance    = true  # required for OpenShift registry
+
+deploy_bnk = false  # set true to also deploy BNK
+```
+
+**Option B — use existing cluster (5–10 min):**
+```hcl
 create_cluster      = false
-cluster_id_existing = "d6f8oamt0tstkgdqk680"  # Get from: ibmcloud ks clusters
+cluster_id_existing = "YOUR_CLUSTER_ID"  # ibmcloud ks clusters --provider vpc-gen2
 
-# Skip infrastructure creation
 create_client_vpc      = false
 create_jumphost        = false
 create_transit_gateway = false
 create_cos_instance    = false
 
-# Deploy FLO to existing cluster
 deploy_bnk = true
-far_repo_url = "repo.f5.com"
-
-# COS Bucket Configuration (optional - fetch FAR auth key and JWT from COS)
-# When enabled, far_service_account_key_path and jwt_token are ignored
-use_cos_bucket                = true
-ibmcloud_cos_bucket_region    = "us-south"
-ibmcloud_cos_instance_name    = "bnk-orchestration"
-ibmcloud_resources_cos_bucket = "bnk-schematics-resources"
-f5_cne_far_auth_file          = "f5-far-auth-key.tgz"
-f5_cne_subscription_jwt_file  = "trial.jwt"
-
-# FLO Configuration
-flo_namespace     = "f5-bnk"
-utils_namespace   = "f5-utils"
-license_mode      = "connected"
-
-# BIG-IP CIS Configuration (optional)
-bigip_username = "admin"
-bigip_password = "YOUR_BIGIP_PASSWORD"
-bigip_url      = "https://your-bigip-url"
-
-# F5 BIG-IP K8s Manifest Version
-f5_bigip_k8s_manifest_version = "YOUR_K8S_MANIFEST_VERSION"
-
-# CNEInstance Configuration
-cneinstance_logging_subsystem      = ""
-cneinstance_metric_subsystem       = false
-cneinstance_firewall_acl           = false
-cneinstance_fluentbit              = false
-cneinstance_deployment_size        = "Small"
-cneinstance_vpc_name               = ""
-cneinstance_cloud_region           = ""
-cneinstance_ibm_trusted_profile_id = ""
-cneinstance_gslb_datacenter_name   = ""
-
-# Certificate Manager Configuration
-cert_manager_namespace = "cert-manager"
-cert_manager_version = "v1.16.1"
 ```
 
 ## Outputs
@@ -445,5 +418,3 @@ terraform state list
 | "field manager conflict" on CNEInstance | The `force_conflicts = true` field_manager is already set. If it persists, check for manual edits to the CR. |
 | "clusterrolebinding already exists" for SCC | The SCC binding was created by another module (e.g., CIS SCC in flo). Remove from cneinstance scc_policy_assignments if duplicate. |
 | License CR stuck in "Registering" state | Verify the JWT token is valid and the cluster has internet access for `connected` mode. |
-
-
