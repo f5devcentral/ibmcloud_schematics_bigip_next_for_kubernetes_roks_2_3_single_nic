@@ -152,18 +152,26 @@ variable "ssh_key_name" {
 # BNK Orchestrator Module Variables
 # ============================================================
 
-variable "far_service_account_key_path" {
-  description = "Path to FAR service account key JSON file - used by flo module"
-  type        = string
-  default     = "/home/dev/dev_pull_64.json"
-}
-
 variable "far_repo_url" {
   description = "FAR Repository URL for docker and helm registry - used by flo, cneinstance modules"
   type        = string
   default     = "repo.f5.com"
 }
 
+variable "license_mode" {
+  description = "License operation mode (connected or disconnected) - used by license module"
+  type        = string
+  default     = "connected"
+}
+
+# Version to install
+variable "f5_bigip_k8s_manifest_version" {
+  description = "Version of f5-bigip-k8s-manifest chart - used by flo, cneinstance modules"
+  type        = string
+  default     = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
+}
+
+# IBM COS FAR and JWT
 # COS Bucket Configuration (Optional - fetch FAR auth key and JWT from COS)
 variable "use_cos_bucket" {
   description = "Fetch FAR auth key and JWT from IBM Cloud Object Storage instead of local files - used by flo, license modules"
@@ -201,28 +209,12 @@ variable "f5_cne_subscription_jwt_file" {
   default     = "trial.jwt"
 }
 
-variable "f5_bigip_k8s_manifest_version" {
-  description = "Version of f5-bigip-k8s-manifest chart - used by flo, cneinstance modules"
-  type        = string
-  default     = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
-}
+# Local file FAR and JWT
 
-variable "flo_chart_version" {
-  description = "Version of f5-lifecycle-operator chart to install (optional - will be discovered if not defined) - used by flo module"
+variable "far_service_account_key_path" {
+  description = "Path to FAR service account key JSON file - used by flo module"
   type        = string
-  default     = ""
-}
-
-variable "flo_namespace" {
-  description = "Namespace for F5 Lifecycle Operator - used by flo, cneinstance modules"
-  type        = string
-  default     = "f5-bnk"
-}
-
-variable "utils_namespace" {
-  description = "Namespace for F5 utility components (shared infrastructure) - used by flo, cneinstance, license modules"
-  type        = string
-  default     = "f5-utils"
+  default     = "/home/dev/dev_pull_64.json"
 }
 
 variable "jwt_token" {
@@ -231,6 +223,38 @@ variable "jwt_token" {
   default     = ""
   sensitive   = true
 }
+
+# Community Cert-Manager
+
+variable "cert_manager_namespace" {
+  description = "Kubernetes namespace for cert-manager - used by cert-manager, flo modules"
+  type        = string
+  default     = "cert-manager"
+}
+
+variable "cert_manager_version" {
+  description = "cert-manager Helm chart version - used by cert-manager, flo modules"
+  type        = string
+  default     = "v1.17.3"
+}
+
+# Where it install the F5 Operator
+
+variable "flo_namespace" {
+  description = "Namespace for F5 Lifecycle Operator - used by flo, cneinstance modules"
+  type        = string
+  default     = "f5-bnk"
+}
+
+# Where to install the F5 control plane utilities
+
+variable "utils_namespace" {
+  description = "Namespace for F5 utility components (shared infrastructure) - used by flo, cneinstance, license modules"
+  type        = string
+  default     = "f5-utils"
+}
+
+# CIS TMOS Integration
 
 variable "bigip_username" {
   description = "BIG-IP username for CIS controller login - used by flo module"
@@ -251,11 +275,7 @@ variable "bigip_url" {
   default     = ""
 }
 
-variable "license_mode" {
-  description = "License operation mode (connected or disconnected) - used by license module"
-  type        = string
-  default     = "connected"
-}
+# Deploy CNE Instance as a Gateway Provider
 
 variable "cneinstance_enabled" {
   description = "Enable CNEInstance deployment - used by cneinstance, license modules"
@@ -269,26 +289,8 @@ variable "cneinstance_logging_subsystem" {
   default     = false
 }
 
-variable "cneinstance_gateway_api" {
-  description = "Enable Gateway API support for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_whole_cluster" {
-  description = "Apply CNEInstance to whole cluster - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
 variable "cneinstance_metric_subsystem" {
   description = "Enable metrics subsystem for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_dynamic_routing" {
-  description = "Enable dynamic routing for CNEInstance - used by flo, cneinstance modules"
   type        = bool
   default     = false
 }
@@ -297,42 +299,6 @@ variable "cneinstance_firewall_acl" {
   description = "Enable firewall ACL for CNEInstance - used by flo, cneinstance modules"
   type        = bool
   default     = false
-}
-
-variable "cneinstance_pseudocni" {
-  description = "Enable pseudo-CNI mode for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_cloud_env" {
-  description = "Enable cloud environment for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_env_discovery" {
-  description = "Enable environment discovery for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_cloud_provider" {
-  description = "Cloud provider for CNEInstance (aws, azure, gcp, ibm) - used by flo, cneinstance modules"
-  type        = string
-  default     = "ibm"
-}
-
-variable "cneinstance_vpc_name" {
-  description = "VPC name for CNEInstance cloud environment - used by cneinstance module"
-  type        = string
-  default     = "tf-cluster-vpc"
-}
-
-variable "cneinstance_cloud_region" {
-  description = "Cloud region for CNEInstance environment - used by cneinstance module"
-  type        = string
-  default     = "jp-tok"
 }
 
 variable "cneinstance_ibm_trusted_profile_id" {
@@ -357,34 +323,4 @@ variable "cneinstance_deployment_size" {
   description = "Deployment size for CNEInstance (Small, Medium, Large) - used by cneinstance module"
   type        = string
   default     = "Small"
-}
-
-variable "nad_cni_type" {
-  description = "CNI type for NetworkAttachmentDefinition (ipvlan or host-device) - used by flo module"
-  type        = string
-  default     = "ipvlan"
-}
-
-variable "nad_interface_name" {
-  description = "Network interface name for NAD - used by flo module"
-  type        = string
-  default     = "ens3"
-}
-
-variable "nad_ipvlan_mode" {
-  description = "IPVLAN mode (l2 or l3) - used by flo module"
-  type        = string
-  default     = "l2"
-}
-
-variable "cert_manager_namespace" {
-  description = "Kubernetes namespace for cert-manager - used by cert-manager, flo modules"
-  type        = string
-  default     = "cert-manager"
-}
-
-variable "cert_manager_version" {
-  description = "cert-manager Helm chart version - used by cert-manager, flo modules"
-  type        = string
-  default     = "v1.17.3"
 }

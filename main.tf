@@ -148,7 +148,6 @@ module "flo" {
 
   # F5 Manifest and FLO Configuration
   f5_bigip_k8s_manifest_version = var.f5_bigip_k8s_manifest_version
-  flo_chart_version             = var.flo_chart_version
   flo_namespace                 = var.flo_namespace
   utils_namespace               = var.utils_namespace
 
@@ -161,22 +160,22 @@ module "flo" {
   bigip_url      = var.bigip_url
 
   # NAD Configuration
-  nad_cni_type        = var.nad_cni_type
-  nad_interface_name  = var.nad_interface_name
-  nad_ipvlan_mode     = var.nad_ipvlan_mode
+  nad_cni_type        = ipvlan
+  nad_interface_name  = ens3
+  nad_ipvlan_mode     = l2
 
   # CNEInstance Configuration
   cneinstance_enabled             = var.cneinstance_enabled
-  cneinstance_gateway_api         = var.cneinstance_gateway_api
-  cneinstance_whole_cluster       = var.cneinstance_whole_cluster
+  cneinstance_gateway_api         = true
+  cneinstance_whole_cluster       = true
   cneinstance_logging_subsystem   = var.cneinstance_logging_subsystem
   cneinstance_metric_subsystem    = var.cneinstance_metric_subsystem
-  cneinstance_dynamic_routing     = var.cneinstance_dynamic_routing
+  cneinstance_dynamic_routing     = false
   cneinstance_firewall_acl        = var.cneinstance_firewall_acl
-  cneinstance_pseudocni           = var.cneinstance_pseudocni
-  cneinstance_cloud_env           = var.cneinstance_cloud_env
-  cneinstance_env_discovery       = var.cneinstance_env_discovery
-  cneinstance_cloud_provider      = var.cneinstance_cloud_provider
+  cneinstance_pseudocni           = true
+  cneinstance_cloud_env           = true
+  cneinstance_env_discovery       = false
+  cneinstance_cloud_provider      = ibm
   cneinstance_fluentbit           = var.cneinstance_fluentbit
 
   # Certificate Manager Configuration
@@ -216,8 +215,8 @@ module "cneinstance" {
   cneinstance_env_discovery     = var.cneinstance_env_discovery
   cneinstance_cloud_env         = var.cneinstance_cloud_env
   cneinstance_cloud_provider    = var.cneinstance_cloud_provider
-  cneinstance_vpc_name          = var.cneinstance_vpc_name
-  cneinstance_cloud_region      = var.cneinstance_cloud_region
+  cneinstance_vpc_name          = var.cluster_vpc_name
+  cneinstance_cloud_region      = var.ibmcloud_cluster_region
   cneinstance_ibm_trusted_profile_id = var.cneinstance_ibm_trusted_profile_id
   cneinstance_gslb_datacenter_name   = var.cneinstance_gslb_datacenter_name
   cneinstance_fluentbit         = var.cneinstance_fluentbit
