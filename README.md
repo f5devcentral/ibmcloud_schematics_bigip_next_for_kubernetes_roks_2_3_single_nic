@@ -91,6 +91,15 @@ The deployment can orchestrate any or all of the following components:
 
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
+| `cluster_vpc_name` | Name of the cluster VPC | REQUIRED when `create_cluster` is true | tf-cluster-vpc (default) |
+| `transit_gateway_name` | Name of the transit gateway | REQUIRED when `create_transit_gateway` is true | tf-tgw (default) |
+| `cos_instance_name` | Name of the COS instance for IBM ROKs registry | Required when `create_cos_instance` and `create_cluster` are true | tf-cos-instance (default) |
+| `openshift_cluster_name` | Name of the OpenShift cluster to create | REQUIRED when `create_cluster` is true | tf-openshift-cluster (default) |
+| `workers_per_zone` | Number of worker nodes per zone | REQUIRED when `create_cluster` is true | 1 (default) |
+| `min_worker_vcpu_count` | Minimum vCPU count for worker nodes | REQUIRED when `create_cluster` is true | 16 (default) |
+| `min_worker_memory_gb` | Minimum memory in GB for worker nodes | REQUIRED when `create_cluster` is true | 64 (default) |
+| `cluster_id_existing` | ID or name of existing OpenShift cluster | REQUIRED when `create_cluster` is false | tf-openshift-cluster |
+
 
 ### Deployment Variables when Deploying Client VPC and Client Jumphost
 
