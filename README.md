@@ -85,15 +85,13 @@ The deployment can orchestrate any or all of the following components:
 | `create_jumphost` | Create jumphost in client VPC. | REQUIRED with default defined | true (default) |
 | `deploy_bnk` | Deploy the F5 BIG-IP Next for Kubernetes in created or specified IBM ROKs cluster | REQUIRED with default defined | true (default) |
 
-### Deployment Variables when Deploying and new IBM ROKs Cluster
+### Deployment Variables when Deploying a new IBM ROKs Cluster
 
 ( Feature Flags: `create_cluster`,`create_cos_instance`,`create_transit_gateway`)
 
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
 | `cluster_vpc_name` | Name of the cluster VPC | REQUIRED when `create_cluster` is true | tf-cluster-vpc (default) |
-
-
 | `transit_gateway_name` | Name of the transit gateway | REQUIRED when `create_transit_gateway` is true | tf-tgw (default) |
 | `cos_instance_name` | Name of the COS instance for IBM ROKs registry | Required when `create_cos_instance` and `create_cluster` are true | tf-cos-instance (default) |
 | `openshift_cluster_name` | Name of the OpenShift cluster to create | REQUIRED when `create_cluster` is true | tf-openshift-cluster (default) |
@@ -146,6 +144,21 @@ When deploying with IBM Schematics the FAR container pull credentials and JWT li
 | `f5_cne_far_auth_file` | FAR auth key filename in COS bucket (.tgz file from myf5.com) | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | f5-far-auth-key.tgz |
 | `f5_cne_subscription_jwt_file` | Subscription JWT filename in COS bucket (.jwt file from myf5.com) | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | trial.jwt |
 
+As an example using the variable defaults:
+
+1) create a IBM COS instance named `bnk-orchestration`
+2) with a bucket named `bnk-schematics-resources` and then
+3) upload the FAR pull secret archive file `f5-far-auth-key.tgz` and
+4) upload the license JWT token file `trial.jwt`.
+
+```
+bnk-orchestrator # IBM COS Instance
+├── bnk-schematics-resources  # IBM COS Bucket
+│   ├── f5-far-auth-key.tgz   # IBM COS Resource (key)
+│   └── trial.jwt             # IBM COS Resource (key)
+```
+
+
 #### Using a local file for F5 Artifact Repository and License JWT token
 
 If terraform is being used on a local machine, the FAR container pull credentials and JWT license token can be read from the local file system. The `use_cos_bucket` should be set to `false` to enable local file access to these resources.
@@ -155,11 +168,13 @@ If terraform is being used on a local machine, the FAR container pull credential
 | `far_service_account_key_path` | Terraform file system path to FAR service account key JSON file | REQUIRED if `deploy_bnk` is true and `use_cos_bucket` is false | /home/user/dev_pull_64.json |
 | `jwt_token` | JWT token for F5 license authentication | REQUIRED if `deploy_bnk` is true and `use_cos_bucket` is false | /home/user/trial.jwt |
 
+
 #### Community Cert-Manager Certificate Mangement
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
 | `cert_manager_namespace` | Kubernetes namespace for cert-manager | | cert-manager |
 | `cert_manager_version` | Helm chart version | | v1.17.3 |
+
 
 #### F5 Lifecycle Operator (FLO) Installer
 
@@ -167,11 +182,13 @@ If terraform is being used on a local machine, the FAR container pull credential
 | -------- | ----------- | -------- | ------- |
 | `flo_namespace` | Namespace for F5 Lifecycle Operator | REQUIRED if `deploy_bnk` is true | f5-bnk (default) |
 
+
 #### F5 Control Plane Shared Utilities
 
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
 | `utils_namespace` | Namespace for F5 utility components | REQUIRED if `deploy_bnk` is true | f5-utils (default) |
+
 
 #### F5 CIS Controller
 
@@ -180,6 +197,7 @@ If terraform is being used on a local machine, the FAR container pull credential
 | `bigip_username` | BIG-IP username for CIS controller login | REQUIRED if `deploy_bnk` is true | admin (default) |
 | `bigip_password` | BIG-IP password for CIS controller login | REQUIRED if `deploy_bnk` is true | admin |
 | `bigip_url` | BIG-IP URL for CIS controller login | REQUIRED if `deploy_bnk` is true | https://10.100.100.1 |
+
 
 #### Deploy CNE Instance as a Gateway Provider
 
