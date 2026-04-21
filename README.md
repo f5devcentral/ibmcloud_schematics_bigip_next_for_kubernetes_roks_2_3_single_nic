@@ -85,23 +85,27 @@ The deployment can orchestrate any or all of the following components:
 | `create_jumphost` | Create jumphost in client VPC. | REQUIRED with default defined | true (default) |
 | `deploy_bnk` | Deploy the F5 BIG-IP Next for Kubernetes in created or specified IBM ROKs cluster | REQUIRED with default defined | true (default) |
 
-### Deployment Variables when Deploying IBM ROKs Cluster ( Feature Flags: `create_cluster`,`create_cos_instance`,`create_transit_gateway`)
+### Deployment Variables when Deploying IBM ROKs Cluster
 
-> Schematics deployment instructions to be added.
+( Feature Flags: `create_cluster`,`create_cos_instance`,`create_transit_gateway`)
 
-### Deployment Variables when Deploying Client VPC and Client Jumphost ( Feature Flags: `create_client_vpc`, `create_jumphost`)
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
 
-> Schematics deployment instructions to be added.
+### Deployment Variables when Deploying Client VPC and Client Jumphost
 
-### Deployment Variables when Deploying BIG-IP Next for Kubernetes ( Feature Flag: `deploy_bnk`)
+( Feature Flags: `create_client_vpc`, `create_jumphost`)
 
-> Schematics deployment instructions to be added.
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
 
+### Deployment Variables when Deploying BIG-IP Next for Kubernetes
 
+( Feature Flag: `deploy_bnk`)
 
-## Overview
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
 
-This project provides Terraform orchestrated configuration of IBM ROKs cluster creation and F5 BIG-IP Next for Kubernetes deployment as independent, reusable modules.
 
 ## Directory Structure
 

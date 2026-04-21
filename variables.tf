@@ -2,7 +2,11 @@
 # Root Terraform Variables
 # ============================================================
 
-# IBM Cloud Configuration
+
+# ============================================================
+# IBM Cloud Variables
+# ============================================================
+
 variable "ibmcloud_api_key" {
   description = "IBM Cloud API Key - used by cluster, flo modules"
   type        = string
@@ -21,7 +25,10 @@ variable "ibmcloud_resource_group" {
   default     = "default"
 }
 
+# ============================================================
 # Feature Flags
+# ============================================================
+
 variable "create_cluster" {
   description = "Create OpenShift cluster - used by cluster module"
   type        = bool
@@ -58,54 +65,28 @@ variable "deploy_bnk" {
   default     = true
 }
 
+# ============================================================
+# Cluster Variables
+# ============================================================
 
-# VPC Configuration
 variable "cluster_vpc_name" {
   description = "Name of the cluster VPC - used by cluster module"
   type        = string
   default     = "tf-cluster-vpc"
 }
 
-# Client VPC Configuration
-variable "client_vpc_name" {
-  description = "Name of the client VPC - used by cluster module"
-  type        = string
-  default     = "tf-client-vpc"
-}
-
-variable "client_vpc_region" {
-  description = "IBM Cloud region for client VPC - used by cluster module"
-  type        = string
-  default     = "eu-gb"
-}
-
-variable "client_jumphost_name" {
-  description = "Name of the jumphost instance - used by cluster module"
-  type        = string
-  default     = "tf-client-jumphost"
-}
-
-variable "ssh_key_name" {
-  description = "SSH key name for jumphost - used by cluster module"
-  type        = string
-  default     = "test-jh"
-}
-
-# Transit Gateway
 variable "transit_gateway_name" {
   description = "Name of the transit gateway - used by cluster module"
   type        = string
   default     = "tf-tgw"
 }
 
-# Cloud Object Storage
 variable "cos_instance_name" {
   description = "Name of the COS instance for IBM ROKs registry - used by cluster module"
   type        = string
   default     = "tf-cos-instance"
 }
 
-# OpenShift Cluster Configuration
 variable "openshift_cluster_name" {
   description = "Name of the OpenShift cluster - used by cluster module"
   type        = string
@@ -135,6 +116,36 @@ variable "cluster_id_existing" {
   description = "ID or name of existing OpenShift cluster (used when create_cluster=false) - used by providers"
   type        = string
   default     = ""
+}
+
+# ============================================================
+# Test Client Variables
+# ============================================================
+
+# TO DO - Refactor module to break out test client into its own module
+
+variable "client_vpc_name" {
+  description = "Name of the client VPC - used by cluster module"
+  type        = string
+  default     = "tf-client-vpc"
+}
+
+variable "client_vpc_region" {
+  description = "IBM Cloud region for client VPC - used by cluster module"
+  type        = string
+  default     = "eu-gb"
+}
+
+variable "client_jumphost_name" {
+  description = "Name of the jumphost instance - used by cluster module"
+  type        = string
+  default     = "tf-client-jumphost"
+}
+
+variable "ssh_key_name" {
+  description = "SSH key name for jumphost - used by cluster module"
+  type        = string
+  default     = "test-jh"
 }
 
 # ============================================================
@@ -375,5 +386,5 @@ variable "cert_manager_namespace" {
 variable "cert_manager_version" {
   description = "cert-manager Helm chart version - used by cert-manager, flo modules"
   type        = string
-  default     = "v1.16.1"
+  default     = "v1.17.3"
 }
