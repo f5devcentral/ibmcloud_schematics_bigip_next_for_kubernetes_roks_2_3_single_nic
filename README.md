@@ -287,8 +287,6 @@ terraform destroy -target=module.cluster -auto-approve
 #### FLO (F5 Lifecycle Operator) Module
 - `enabled`: Enable/disable module (controlled by deploy_bnk)
 - `cert_manager_crd_ready`: **CRITICAL** - Dependency trigger from cert-manager module (ensures CRDs exist before plan validates manifests)
-- `flo_chart_version`: Version override for FLO helm chart (auto-extracted from manifest if empty)
-- `cis_chart_version`: Version override for CIS helm chart (auto-extracted from manifest if empty)
 - `bigip_username`: BIG-IP username for CIS controller login (default: admin)
 - `bigip_password`: BIG-IP password for CIS controller login (sensitive)
 - `bigip_url`: BIG-IP URL for CIS controller login (https:// prefix is stripped automatically)

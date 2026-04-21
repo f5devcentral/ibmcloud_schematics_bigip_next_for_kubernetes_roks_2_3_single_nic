@@ -4,6 +4,12 @@ variable "ibmcloud_api_key" {
   sensitive   = true
 }
 
+variable "openshift_cluster_version" {
+  description = "OpenShift cluster version (e.g. 4.18). If empty, the latest available version is used."
+  type        = string
+  default     = "4.18"
+}
+
 variable "cluster_region" {
   description = "IBM Cloud region for cluster"
   type        = string

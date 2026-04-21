@@ -68,8 +68,9 @@ module "cluster" {
   cos_instance_name = var.cos_instance_name
 
   # OpenShift Cluster Configuration
-  openshift_cluster_name = var.openshift_cluster_name
-  workers_per_zone       = var.workers_per_zone
+  openshift_cluster_name    = var.openshift_cluster_name
+  openshift_cluster_version = var.openshift_cluster_version
+  workers_per_zone          = var.workers_per_zone
   min_worker_vcpu_count  = var.min_worker_vcpu_count
   min_worker_memory_gb   = var.min_worker_memory_gb
 
@@ -148,7 +149,6 @@ module "flo" {
 
   # F5 Manifest and FLO Configuration
   f5_bigip_k8s_manifest_version = var.f5_bigip_k8s_manifest_version
-  flo_chart_version             = var.flo_chart_version
   flo_namespace                 = var.flo_namespace
   utils_namespace               = var.utils_namespace
 

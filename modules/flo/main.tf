@@ -2,6 +2,7 @@ locals {
   global_enabled = var.enabled
   
   far_registry_hostname = replace(var.far_repo_url, "https://", "")
+  image_repository      = "${local.far_registry_hostname}/images"
   far_service_account_key_file = var.use_cos_bucket ? "/tmp/${local.far_extracted_filename}" : var.far_service_account_key_path
   far_service_account_b64 = var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : data.local_file.far_service_account_local[0].content
   far_auth_value = base64encode("_json_key_base64:${local.far_service_account_b64}")
@@ -63,7 +64,7 @@ locals {
     bigip_login_secret = "f5-bigip-ctlr-login"
 
     image = {
-      repository = var.image_repository
+      repository = local.image_repository
       repo       = "f5-bnk-cis"
       pullSecrets = [
         "far-secret"
@@ -88,7 +89,7 @@ locals {
     sharedComponentNamespace = var.utils_namespace
 
     image = {
-      repository = var.image_repository
+      repository = local.image_repository
       pullPolicy = "Always"
     }
 
@@ -99,7 +100,7 @@ locals {
     "f5-spk-crds-common" = {
       versionValidator = {
         image = {
-          repository = var.image_repository
+          repository = local.image_repository
         }
       }
     }
@@ -107,14 +108,14 @@ locals {
     "f5-spk-crds-service-proxy" = {
       versionValidator = {
         image = {
-          repository = var.image_repository
+          repository = local.image_repository
         }
       }
     }
 
     "f5-ipam-operator" = {
       image = {
-        repository = var.image_repository
+        repository = local.image_repository
         pullPolicy = "Always"
       }
       namespace        = var.flo_namespace
@@ -526,21 +527,6 @@ resource "kubernetes_secret" "far_secret_utils" {
   ]
 }
 
-# Delete Gateway API validating admission policy binding that conflicts with FLO CRDs
-resource "null_resource" "delete_gatewayapi_admission_policy" {
-  count = local.global_enabled ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "oc delete validatingadmissionpolicybinding openshift-ingress-operator-gatewayapi-crd-admission --ignore-not-found"
-  }
-
-  depends_on = [
-    kubernetes_namespace.flo_namespace,
-    kubernetes_secret.far_secret_flo,
-    kubernetes_manifest.ca_cluster_issuer[0]
-  ]
-}
-
 # Install f5-lifecycle-operator using Helm
 resource "helm_release" "f5_lifecycle_operator" {
   provider = helm
@@ -548,7 +534,7 @@ resource "helm_release" "f5_lifecycle_operator" {
   
   name      = "flo"
   chart     = "oci://${replace(var.far_repo_url, "https://", "")}/charts/f5-lifecycle-operator"
-  version   = var.flo_chart_version != "" ? var.flo_chart_version : chomp(data.local_file.flo_version[0].content)
+  version   = chomp(data.local_file.flo_version[0].content)
   namespace = var.flo_namespace
   wait      = false
   timeout   = 300
@@ -556,7 +542,6 @@ resource "helm_release" "f5_lifecycle_operator" {
   values = [yamlencode(local.flo_helm_values)]
 
   depends_on = [
-    null_resource.delete_gatewayapi_admission_policy,
     kubernetes_namespace.flo_namespace,
     kubernetes_secret.far_secret_flo,
     kubernetes_manifest.ca_cluster_issuer[0]
@@ -570,7 +555,7 @@ resource "helm_release" "f5_bnk_cis" {
 
   name      = "f5-bnk-cis"
   chart     = "oci://${replace(var.far_repo_url, "https://", "")}/charts/f5-bnk-cis"
-  version   = var.cis_chart_version != "" ? var.cis_chart_version : chomp(data.local_file.cis_version[0].content)
+  version   = chomp(data.local_file.cis_version[0].content)
   namespace = var.flo_namespace
   wait      = false
   timeout   = 300

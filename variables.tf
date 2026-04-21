@@ -105,6 +105,12 @@ variable "openshift_cluster_name" {
   default     = "tf-openshift-cluster"
 }
 
+variable "openshift_cluster_version" {
+  description = "OpenShift cluster version (e.g. 4.18). If empty, the latest available version is used."
+  type        = string
+  default     = "4.18"
+}
+
 variable "workers_per_zone" {
   description = "Number of worker nodes per zone"
   type        = number
@@ -193,12 +199,6 @@ variable "f5_bigip_k8s_manifest_version" {
   description = "Version of f5-bigip-k8s-manifest chart"
   type        = string
   default     = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
-}
-
-variable "flo_chart_version" {
-  description = "Version of f5-lifecycle-operator chart to install"
-  type        = string
-  default     = ""
 }
 
 variable "flo_namespace" {

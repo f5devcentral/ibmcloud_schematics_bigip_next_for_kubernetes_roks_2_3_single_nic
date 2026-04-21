@@ -30,8 +30,7 @@ locals {
   # Select latest available OpenShift version or use user-specified version
   available_openshift_versions = data.ibm_container_cluster_versions.cluster_versions.valid_openshift_versions
 
-  # Get the latest version by sorting and taking the last element
-  # Always use the latest available version from the region
+  # Use user-specified version if provided, otherwise pick the latest available
   openshift_version = "${reverse(sort(local.available_openshift_versions))[0]}_openshift"
 
   # VPC references (either created or existing)
@@ -678,7 +677,6 @@ resource "ibm_tg_gateway" "transit_gateway" {
   location                       = var.cluster_region
   global                         = true
   resource_group                 = data.ibm_resource_group.resource_group.id
-  gre_enhanced_route_propagation = true
   tags                           = ["terraform", "transit-gateway"]
 }
 

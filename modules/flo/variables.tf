@@ -47,19 +47,6 @@ variable "manifest_download_dir" {
 }
 
 # F5 Lifecycle Operator (FLO) Variables
-variable "flo_chart_version" {
-  description = "Version of f5-lifecycle-operator chart to install (auto-extracted if not provided)"
-  type        = string
-  default     = ""
-}
-
-# F5 BNK CIS Variables
-variable "cis_chart_version" {
-  description = "Version of f5-bnk-cis chart to install (auto-extracted if not provided)"
-  type        = string
-  default     = ""
-}
-
 variable "bigip_username" {
   description = "BIG-IP username for CIS controller login"
   type        = string
@@ -94,12 +81,6 @@ variable "jwt_token" {
   description = "JWT token for license authentication"
   type        = string
   sensitive   = true
-}
-
-variable "image_repository" {
-  description = "Image repository for FLO components"
-  type        = string
-  default     = "repo.f5.com/images"
 }
 
 variable "cluster_issuer_name" {
