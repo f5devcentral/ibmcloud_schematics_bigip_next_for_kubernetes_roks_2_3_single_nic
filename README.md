@@ -8,9 +8,9 @@ This Schematics-ready Terraform workspace corresponds to the F5 engineering Marc
 
 #### What's New in 2.3.0-EHF-2-3.2598.3-0.0.17
 
-- Static routing control of VPC routers
-- GSLB disaggregation across IBM Cloud availability zones with BIG-IP Virtual Edition DNS Services
-- External client service delivery through static VPC routes
+- Static routing control of IBM Cloud VPC routers
+- GSLB disaggregation ingress across IBM Cloud availability zones for BIG-IP Virtual Edition DNS Services
+- External client service delivery through static VPC routes with attached IBM cloud Transit Gateway
 - Inter-VPC client service delivery through static VPC routes
 
 The engineering demonstration code provides the ability to test the following BIG-IP Next for Kubernetes on IBM ROKs cluster features.
@@ -49,19 +49,63 @@ A DNS Services GSLB Data Center must be deployed so that the BIG-IP Next for Kub
 
 The GSLB Data Center name will be required for the Terraform `cneinstance_gslb_datacenter_name` variable.
 
+Additionally, the iControl REST credentials to access the BIG-IP DNS Services appliance will be required. They are defined in the following deployment variables:
+
+| Variable | Description | Example |
+| -------- | ----------- | ------- |
+| `bigip_username` | BIG-IP username for CIS controller login | (default: admin)|
+| `bigip_password` | BIG-IP password for CIS controller login | (sensitive) password |
+| `bigip_url` | BIG-IP URL for CIS controller login | https://10.100.100.22 |
+
+The CIS controller, deployed within the IBM ROKs cluster, must be able to resolve the URL host and reach the iControl REST endpoint in the BIG-IP DNS Services appliance.
+
 ## Deploying with IBM Schematics
 
-### Deploying a Full IBM Cloud ROKs Cluster for Testing
+The following IBM provider and IAM variables must be defined.
 
-> Schematics deployment instructions to be added.
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `ibmcloud_api_key` | API Key used to authorize all deployment resources. | REQUIRED |`0q7N3CzUn6oKxEsr7fLc1mxkukBeAEcsjNRQOg1kdDSY` (note not a real APIKey) |
+| `ibmcloud_cluster_region` | IBM Cloud region for cluster resources. | REQUIRED with default defined | `jp-tok ` (default)|
+| `ibmcloud_resource_group` | IBM Cloud resource group name. | REQUIRED with default defined | `default` (default) |
 
-### Deploying with an existing IBM Cloud ROKs Cluster
 
-> Schematics deployment instructions to be added.
+This deployment is modular and presents the following feature flag variables that control which components should be orchestrated in this deployment.
 
-## Overview
+<img src="./assets/images/terraform_feature_flag_component_diagram.svg" width="600" alt="Deployment Components and Feature Flag Variables">
 
-This project provides Terraform orchestrated configuration of IBM ROKs cluster creation and F5 BIG-IP Next for Kubernetes deployment as independent, reusable modules.
+The deployment can orchestrate any or all of the following components:
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `create_cluster` | Create OpenShift cluster. | REQUIRED with default defined | true (default) |
+| `create_cos_instance` | Create Cloud Object Storage instance for IBM ROKs internal registry. This only applies if `create_cluster` is `true`. | REQUIRED with default defined | true (default) |
+| `create_transit_gateway` | Create a Transit Gateway and connect it to the IBM ROKs cluster VPC | REQUIRED with default defined | true (default) |
+| `create_client_vpc` | Create client VPC. | REQUIRED with default defined | true (default) |
+| `create_jumphost` | Create jumphost in client VPC. | REQUIRED with default defined | true (default) |
+| `deploy_bnk` | Deploy the F5 BIG-IP Next for Kubernetes in created or specified IBM ROKs cluster | REQUIRED with default defined | true (default) |
+
+### Deployment Variables when Deploying IBM ROKs Cluster
+
+( Feature Flags: `create_cluster`,`create_cos_instance`,`create_transit_gateway`)
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+
+### Deployment Variables when Deploying Client VPC and Client Jumphost
+
+( Feature Flags: `create_client_vpc`, `create_jumphost`)
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+
+### Deployment Variables when Deploying BIG-IP Next for Kubernetes
+
+( Feature Flag: `deploy_bnk`)
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+
 
 ## Directory Structure
 

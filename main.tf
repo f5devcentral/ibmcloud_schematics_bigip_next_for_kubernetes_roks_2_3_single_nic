@@ -42,8 +42,8 @@ module "cluster" {
 
   # IBM Cloud Configuration
   ibmcloud_api_key = var.ibmcloud_api_key
-  cluster_region   = var.cluster_region
-  resource_group   = var.resource_group
+  cluster_region   = var.ibmcloud_cluster_region
+  resource_group   = var.ibmcloud_resource_group
 
   # Feature Flags
   create_cluster         = var.create_cluster
@@ -80,7 +80,7 @@ module "cluster" {
 # Module: BNK Orchestrator
 # ============================================================
 # Deploys BNK Orchestrator to the cluster using dynamic authentication
-# 
+#
 # Key Changes from Previous Implementation:
 # - ✅ No manual kubeconfig management
 # - ✅ Uses dynamic Kubernetes/Helm providers with IBM Cloud credentials
@@ -187,7 +187,7 @@ module "flo" {
 # ============================================================
 # Module: CNEInstance
 # ============================================================
-# Deploys CNEInstance custom resource after FLO deployment 
+# Deploys CNEInstance custom resource after FLO deployment
 # is fully completed (ensures FLO CRD is available)
 
 module "cneinstance" {
@@ -222,7 +222,7 @@ module "cneinstance" {
   cneinstance_gslb_datacenter_name   = var.cneinstance_gslb_datacenter_name
   cneinstance_fluentbit         = var.cneinstance_fluentbit
   cneinstance_network_attachments = module.flo.cneinstance_network_attachments
-  
+
   cluster_issuer_name = module.flo.cluster_issuer_name
   far_repo_url        = var.far_repo_url
 
