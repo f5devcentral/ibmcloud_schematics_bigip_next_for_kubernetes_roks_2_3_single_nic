@@ -28,18 +28,6 @@ variable "create_cluster" {
   default     = true
 }
 
-variable "create_client_vpc" {
-  description = "Create client VPC - used by cluster module"
-  type        = bool
-  default     = true
-}
-
-variable "create_jumphost" {
-  description = "Create jumphost in client VPC - used by cluster module"
-  type        = bool
-  default     = true
-}
-
 variable "create_transit_gateway" {
   description = "Create transit gateway - used by cluster module"
   type        = bool
@@ -48,6 +36,18 @@ variable "create_transit_gateway" {
 
 variable "create_cos_instance" {
   description = "Create Cloud Object Storage instance for IBM ROKs registry - used by cluster module"
+  type        = bool
+  default     = true
+}
+
+variable "create_client_vpc" {
+  description = "Create client VPC - used by cluster module"
+  type        = bool
+  default     = true
+}
+
+variable "create_jumphost" {
+  description = "Create jumphost in client VPC - used by cluster module"
   type        = bool
   default     = true
 }

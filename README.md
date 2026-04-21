@@ -70,7 +70,7 @@ The following IBM provider and IAM variables must be defined.
 | `ibmcloud_resource_group` | IBM Cloud resource group name. | REQUIRED with default defined | `default` (default) |
 
 
-This deployment is modular and presents the following feature flag variable that control which components should be orchestrated in this deployment.
+This deployment is modular and presents the following feature flag variables that control which components should be orchestrated in this deployment.
 
 <img src="./assets/images/terraform_feature_flag_component_diagram.svg" width="600" alt="Deployment Components and Feature Flag Variables">
 
@@ -79,18 +79,25 @@ The deployment can orchestrate any or all of the following components:
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
 | `create_cluster` | Create OpenShift cluster. | REQUIRED with default defined | true (default) |
+| `create_cos_instance` | Create Cloud Object Storage instance for IBM ROKs internal registry. This only applies if `create_cluster` is `true`. | REQUIRED with default defined | true (default) |
+| `create_transit_gateway` | Create a Transit Gateway and connect it to the IBM ROKs cluster VPC | REQUIRED with default defined | true (default) |
 | `create_client_vpc` | Create client VPC. | REQUIRED with default defined | true (default) |
 | `create_jumphost` | Create jumphost in client VPC. | REQUIRED with default defined | true (default) |
-| `create_cos_instance` | Create Cloud Object Storage instance for IBM ROKs internal registry. This only applies if `create_cluster` is `true`. | REQUIRED with default defined | true (default) |
 | `deploy_bnk` | Deploy the F5 BIG-IP Next for Kubernetes in created or specified IBM ROKs cluster | REQUIRED with default defined | true (default) |
 
-### Deploying a Full IBM Cloud ROKs Cluster for Testing
+### Deployment Variables when Deploying IBM ROKs Cluster ( Feature Flags: `create_cluster`,`create_cos_instance`,`create_transit_gateway`)
 
 > Schematics deployment instructions to be added.
 
-### Deploying with an existing IBM Cloud ROKs Cluster
+### Deployment Variables when Deploying Client VPC and Client Jumphost ( Feature Flags: `create_client_vpc`, `create_jumphost`)
 
 > Schematics deployment instructions to be added.
+
+### Deployment Variables when Deploying BIG-IP Next for Kubernetes ( Feature Flag: `deploy_bnk`)
+
+> Schematics deployment instructions to be added.
+
+
 
 ## Overview
 
