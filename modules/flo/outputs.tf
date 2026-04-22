@@ -134,5 +134,5 @@ output "cos_jwt_token" {
 
 output "trusted_profile_id" {
   description = "ID of the IBM IAM trusted profile created for the CNE controller service account"
-  value       = local.global_enabled && var.openshift_cluster_crn != "" ? ibm_iam_trusted_profile.cne_controller[0].id : null
+  value       = local.global_enabled ? ibm_iam_trusted_profile.cne_controller[0].id : null
 }

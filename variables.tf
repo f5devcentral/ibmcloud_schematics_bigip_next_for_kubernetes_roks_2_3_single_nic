@@ -75,12 +75,6 @@ variable "cluster_vpc_name" {
   default     = "tf-cluster-vpc"
 }
 
-variable "transit_gateway_name" {
-  description = "Name of the transit gateway - used by cluster module"
-  type        = string
-  default     = "tf-tgw"
-}
-
 variable "cos_instance_name" {
   description = "Name of the COS instance for IBM ROKs registry - used by cluster module"
   type        = string
@@ -116,6 +110,16 @@ variable "cluster_id_existing" {
   description = "ID or name of existing OpenShift cluster (used when create_cluster=false) - used by providers"
   type        = string
   default     = ""
+}
+
+# ============================================================
+# Transit Gateway Variables
+# ============================================================
+
+variable "transit_gateway_name" {
+  description = "Name of the transit gateway - used by cluster module"
+  type        = string
+  default     = "tf-tgw"
 }
 
 # ============================================================
@@ -281,48 +285,6 @@ variable "cneinstance_enabled" {
   description = "Enable CNEInstance deployment - used by cneinstance, license modules"
   type        = bool
   default     = true
-}
-
-variable "cneinstance_gateway_api" {
-  description = "Enable Gateway API support for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_whole_cluster" {
-  description = "Apply CNEInstance to whole cluster - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_dynamic_routing" {
-  description = "Enable dynamic routing for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_pseudocni" {
-  description = "Enable pseudo-CNI mode for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_cloud_env" {
-  description = "Enable cloud environment for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_env_discovery" {
-  description = "Enable environment discovery for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_cloud_provider" {
-  description = "Cloud provider for CNEInstance (aws, azure, gcp, ibm) - used by flo, cneinstance modules"
-  type        = string
-  default     = "ibm"
 }
 
 variable "cneinstance_logging_subsystem" {

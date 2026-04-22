@@ -19,29 +19,52 @@ ibmcloud_cluster_region = "jp-tok"
 ibmcloud_resource_group = "default"
 
 # ==============================================================================
-# Cluster VPC Configuration
+# Feature Flags
 # ==============================================================================
-
-# Create a new cluster VPC
-cluster_vpc_name = "tf-cluster-vpc-hk"
-
-
-# ==============================================================================
-# Red Hat OpenShift Cluster Configuration
-# ==============================================================================
+# Create the Red Hat OpenShift cluster
 
 # Enable cluster creation (default: true)
 # Set to true to create OpenShift cluster
 # Set to false to use an existing cluster (must specify cluster_id_existing)
 create_cluster = true
+# Create the IBM Cloud COS instance for the Red Hat OpenShift cluster registry
+create_cos_instance = true
+
+# Create a test client IBM Cloud VPC
+# Enable client VPC creation (default: true)
+# Set to true to create client VPC (jumphost requires client VPC to be created)
+create_client_vpc = true
+
+# Create a test IBM Cloud VSI instance as a test client jumphost
+# Enable jumphost creation in client VPC (default: true)
+# Set to true to create jumphost (requires create_client_vpc = true)
+create_jumphost = true
+
+# Create a IBM Cloud Transit Gateway to connect the cluster VPC to clients
+# Enable Transit Gateway creation (default: true)
+# Set to false to skip Transit Gateway and VPC connections
+create_transit_gateway = true
+
+# Deploy BIG-IP Next for Kubernetes in the Red Hat OpenShift cluster
+deploy_bnk = true
+
+# ==============================================================================
+# Red Hat OpenShift Cluster Configuration
+# ==============================================================================
+
+# Create a new cluster VPC
+cluster_vpc_name = "tf-cluster-vpc"
 
 # Existing cluster ID or name (used when create_cluster = false)
 # Leave empty or comment out when create_cluster = true
 # Example: "d664r5st001n05jg3iog" (for existing cluster)
 # cluster_id_existing = ""
 
+# Create COS instance for OpenShift internal registry (REQUIRED for OpenShift)
+cos_instance_name   = "tf-cos-instance"
+
 # Name of the OpenShift cluster (will be created)
-openshift_cluster_name = "tf-cluster-hk-new"
+openshift_cluster_name = "tf-cluster-new"
 
 # Number of worker nodes per zone (minimum 1, recommended 2+ for HA)
 # Total workers = workers_per_zone × 3 zones
@@ -49,23 +72,15 @@ workers_per_zone = 1
 
 # Minimum requirements for worker nodes (used when auto-selecting)
 # Only change if you need different minimums
-# min_worker_vcpu_count = 16
-# min_worker_memory_gb = 64
-
-# Create COS instance for OpenShift internal registry (REQUIRED for OpenShift)
-create_cos_instance = true
-cos_instance_name   = "tf-cos-instance"
+min_worker_vcpu_count = 16
+min_worker_memory_gb = 64
 
 # ==============================================================================
 # Client VPC Configuration (Separate region for testing/management)
 # ==============================================================================
 
-# Enable client VPC creation (default: true)
-# Set to true to create client VPC (jumphost requires client VPC to be created)
-create_client_vpc = true
-
 # Create a new client VPC
-client_vpc_name = "tf-client-vpc-hk"
+client_vpc_name = "tf-client-vpc"
 
 # Region for client VPC (can be different from cluster region)
 # Common options: au-syd (Sydney), us-south (Dallas), eu-de (Frankfurt), eu-gb (London)
@@ -75,29 +90,20 @@ client_vpc_region = "eu-gb"
 # REQUIRED: SSH Key Configuration (only when jumphost is enabled)
 # ==============================================================================
 
-# Enable jumphost creation in client VPC (default: true)
-# Set to true to create jumphost (requires create_client_vpc = true)
-create_jumphost = true
-
 # SSH key name (REQUIRED only when create_jumphost = true)
 # Must already exist in IBM Cloud in client VPC region
 ssh_key_name = "test-jh"
 
 # Name of the client jumphost instance (will be created if create_jumphost = true)
-client_jumphost_name = "tf-client-jh-hk"
+client_jumphost_name = "tf-client-jh"
 
 # ==============================================================================
 # Transit Gateway Configuration (OPTIONAL)
 # ==============================================================================
 
-# Enable Transit Gateway creation (default: true)
-# Set to false to skip Transit Gateway and VPC connections
-create_transit_gateway = true
-
 # Name of the Transit Gateway (will be created if enabled)
 # Connects cluster VPC, client VPC, and on-premises network via GRE tunnels
-transit_gateway_name = "tf-tgw-hk"
-
+transit_gateway_name = "tf-tgw"
 
 # ==============================================================================
 # F5 BNK Orchestrator Configuration
@@ -109,14 +115,13 @@ transit_gateway_name = "tf-tgw-hk"
 # Step 2: Set deploy_bnk = true, terraform apply -target=module.cert_manager
 # Step 3: Set deploy_bnk = true, terraform apply -target=module.flo
 # Step 4: Set deploy_bnk = true, terraform apply -target=module.cneinstance
-deploy_bnk = false
-
-# FAR (F5 Artifact Repository) Configuration
-# Path to your FAR service account key JSON file (Optional if use_cos_bucket set to true )
-# far_service_account_key_path = "/path/to/FAR/Service/Account"
 
 # FAR Repository URL
 far_repo_url = "repo.f5.com"
+# License operation mode (Options: connected, disconnected)
+license_mode = "connected"
+# F5 BIG-IP K8s Manifest version
+f5_bigip_k8s_manifest_version = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
 
 # COS Bucket Configuration (Optional - fetch FAR auth key and JWT from COS)
 # Set use_cos_bucket = true to fetch FAR auth key and JWT from COS instead of local files
@@ -129,8 +134,11 @@ ibmcloud_resources_cos_bucket = "bnk-schematics-resources"
 f5_cne_far_auth_file          = "f5-far-auth-key.tgz"
 f5_cne_subscription_jwt_file  = "trial.jwt"
 
-# F5 BIG-IP K8s Manifest version
-f5_bigip_k8s_manifest_version = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
+# FAR (F5 Artifact Repository) Configuration
+# Path to local file system FAR service account key JSON file (Optional if use_cos_bucket set to true )
+# far_service_account_key_path = "/path/to/FAR/Service/Account"
+# JWT token for F5 licensing (Optional if use_cos_bucket set to true)
+# jwt_token = "your-jwt-token-here"
 
 # ==============================================================================
 # Certificate Manager Configuration
@@ -140,7 +148,7 @@ f5_bigip_k8s_manifest_version = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
 cert_manager_namespace = "cert-manager"
 
 # Certificate manager Helm chart version
-cert_manager_version = "v1.16.1"
+cert_manager_version = "v1.17.3"
 
 # ==============================================================================
 # F5 Lifecycle Operator (FLO) Configuration
@@ -162,6 +170,9 @@ bigip_url      = "https://your-bigip-url"
 # CNEInstance (Container Network Engine Instance) Configuration
 # ==============================================================================
 
+# Create the CNEInstance CRD
+cneinstance_enabled = true
+
 # Enable logging subsystem
 cneinstance_logging_subsystem = false
 
@@ -171,18 +182,11 @@ cneinstance_metric_subsystem = false
 # Enable firewall ACL (AFM)
 cneinstance_firewall_acl = false
 
+# GSLB datacenter name
+cneinstance_gslb_datacenter_name = ""
+
 # Enable Fluentbit for logging
 cneinstance_fluentbit = false
 
 # CNEInstance deployment size (Options: Small, Medium, Large)
 cneinstance_deployment_size = "Small"
-
-# GSLB datacenter name
-cneinstance_gslb_datacenter_name = ""
-
-# JWT token for F5 licensing (Optional if use_cos_bucket set to true)
-# jwt_token = "your-jwt-token-here"
-
-# License operation mode (Options: connected, disconnected)
-license_mode = "connected"
-
