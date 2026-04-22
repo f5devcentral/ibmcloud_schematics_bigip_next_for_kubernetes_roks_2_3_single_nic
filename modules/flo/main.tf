@@ -3,7 +3,6 @@ locals {
   
   far_registry_hostname = replace(var.far_repo_url, "https://", "")
   image_repository      = "${local.far_registry_hostname}/images"
-  far_service_account_key_file = var.use_cos_bucket ? "/tmp/${local.far_extracted_filename}" : var.far_service_account_key_path
   far_service_account_b64 = local.global_enabled ? (var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : data.local_file.far_service_account_local[0].content) : ""
   far_auth_value = base64encode("_json_key_base64:${local.far_service_account_b64}")
   cos_jwt_token = local.global_enabled && var.use_cos_bucket ? trimspace(data.http.jwt_download[0].response_body) : var.jwt_token
@@ -240,24 +239,7 @@ data "local_file" "cne_pull_64_json_file" {
   depends_on = [null_resource.cne_far_tgz_extractor]
 }
 
-# Registry authentication - consolidated into single resource
-# Note: These local-exec operations are kept as they're local CLI operations without Terraform equivalents
-resource "null_resource" "registry_authentication" {
-  count = local.global_enabled ? 1 : 0
-  
-  provisioner "local-exec" {
-    command = "cat ${local.far_service_account_key_file} | helm registry login -u _json_key_base64 --password-stdin ${var.far_repo_url}"
-  }
-
-  triggers = {
-    service_account_key = local.far_service_account_key_file
-    repo_url            = var.far_repo_url
-  }
-
-  depends_on = [null_resource.cne_far_tgz_extractor]
-}
-
-# Fetch and apply NAD CRD using kubernetes_manifest (removes local-exec)
+# Fetch and apply NAD CRD using kubernetes_manifest
 data "http" "nad_crd" {
   count = local.global_enabled ? 1 : 0
   url   = "https://raw.githubusercontent.com/k8snetworkplumbingwg/network-attachment-definition-client/master/artifacts/networks-crd.yaml"
@@ -268,8 +250,6 @@ resource "kubernetes_manifest" "nad_crd" {
   count    = 0 # CRD already exists in cluster
 
   manifest = yamldecode(data.http.nad_crd[0].response_body)
-
-  depends_on = [null_resource.registry_authentication]
 }
 
 # Create NetworkAttachmentDefinition in FLO namespace using kubernetes_manifest
@@ -399,7 +379,7 @@ resource "kubernetes_manifest" "ca_cluster_issuer" {
   depends_on = [kubernetes_manifest.ca_certificate[0]]
 }
 
-# Pull f5-bigip-k8s-manifest chart - keep as local-exec (local CLI operation only)
+# Pull f5-bigip-k8s-manifest chart to extract FLO and CIS versions
 resource "null_resource" "extract_flo_version" {
   count = local.global_enabled ? 1 : 0
   provisioner "local-exec" {
@@ -407,6 +387,7 @@ resource "null_resource" "extract_flo_version" {
       set -e
       mkdir -p ${var.manifest_download_dir}
       cd ${var.manifest_download_dir}
+      echo "${local.far_service_account_b64}" | helm registry login -u _json_key_base64 --password-stdin ${replace(var.far_repo_url, "https://", "")}
       helm pull oci://${replace(var.far_repo_url, "https://", "")}/release/f5-bigip-k8s-manifest --version "${var.f5_bigip_k8s_manifest_version}" -d .
       tar -xzf f5-bigip-k8s-manifest-${var.f5_bigip_k8s_manifest_version}.tgz
       FLO_VERSION=$(grep -A 1 "charts/f5-lifecycle-operator" f5-bigip-k8s-manifest-${var.f5_bigip_k8s_manifest_version}/bigip-k8s-manifest-${var.f5_bigip_k8s_manifest_version}.yaml | grep "version:" | awk '{print $2}' | tr -d '"' | tr -d "'")
@@ -420,7 +401,7 @@ resource "null_resource" "extract_flo_version" {
     manifest_version = var.f5_bigip_k8s_manifest_version
   }
 
-  depends_on = [null_resource.registry_authentication]
+  depends_on = [null_resource.cne_far_tgz_extractor]
 }
 
 # Read the extracted FLO version
@@ -495,7 +476,7 @@ resource "kubernetes_secret" "far_secret_flo" {
   }
 
   depends_on = [
-    null_resource.registry_authentication
+    kubernetes_namespace.flo_namespace
   ]
 }
 
@@ -516,8 +497,7 @@ resource "kubernetes_secret" "far_secret_utils" {
   }
 
   depends_on = [
-    kubernetes_namespace.f5_utils,
-    null_resource.registry_authentication
+    kubernetes_namespace.f5_utils
   ]
 }
 
@@ -526,12 +506,15 @@ resource "helm_release" "f5_lifecycle_operator" {
   provider = helm
   count    = local.global_enabled ? 1 : 0
   
-  name      = "flo"
-  chart     = "oci://${replace(var.far_repo_url, "https://", "")}/charts/f5-lifecycle-operator"
-  version   = chomp(data.local_file.flo_version[0].content)
-  namespace = var.flo_namespace
-  wait      = false
-  timeout   = 300
+  name                = "flo"
+  repository          = "oci://${replace(var.far_repo_url, "https://", "")}/charts"
+  chart               = "f5-lifecycle-operator"
+  repository_username = "_json_key_base64"
+  repository_password = local.far_service_account_b64
+  version             = chomp(data.local_file.flo_version[0].content)
+  namespace           = var.flo_namespace
+  wait                = false
+  timeout             = 300
   
   values = [yamlencode(local.flo_helm_values)]
 
@@ -547,12 +530,15 @@ resource "helm_release" "f5_bnk_cis" {
   provider = helm
   count    = local.global_enabled ? 1 : 0
 
-  name      = "f5-bnk-cis"
-  chart     = "oci://${replace(var.far_repo_url, "https://", "")}/charts/f5-bnk-cis"
-  version   = chomp(data.local_file.cis_version[0].content)
-  namespace = var.flo_namespace
-  wait      = false
-  timeout   = 300
+  name                = "f5-bnk-cis"
+  repository          = "oci://${replace(var.far_repo_url, "https://", "")}/charts"
+  chart               = "f5-bnk-cis"
+  repository_username = "_json_key_base64"
+  repository_password = local.far_service_account_b64
+  version             = chomp(data.local_file.cis_version[0].content)
+  namespace           = var.flo_namespace
+  wait                = false
+  timeout             = 300
 
   values = [yamlencode(local.cis_helm_values)]
 
