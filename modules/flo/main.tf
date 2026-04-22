@@ -796,8 +796,6 @@ resource "ibm_iam_trusted_profile_policy" "cne_controller_vpc" {
   profile_id = ibm_iam_trusted_profile.cne_controller[0].id
   roles      = ["Viewer", "Editor"]
   resources {
-    service       = "is"
-    resource_type = "vpc"
-    resource      = var.cluster_vpc_id
+    service = "is"
   }
 }
