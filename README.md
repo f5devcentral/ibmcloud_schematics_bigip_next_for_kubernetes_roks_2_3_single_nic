@@ -85,12 +85,27 @@ The deployment can orchestrate any or all of the following components:
 | `create_jumphost` | Create jumphost in client VPC. | REQUIRED with default defined | true (default) |
 | `deploy_bnk` | Deploy the F5 BIG-IP Next for Kubernetes in created or specified IBM ROKs cluster | REQUIRED with default defined | true (default) |
 
-### Deployment Variables when Deploying IBM ROKs Cluster
+### Deployment Variables when Deploying a new IBM ROKs Cluster
 
 ( Feature Flags: `create_cluster`,`create_cos_instance`,`create_transit_gateway`)
 
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
+| `cluster_vpc_name` | Name of the cluster VPC | REQUIRED when `create_cluster` is true | tf-cluster-vpc (default) |
+| `transit_gateway_name` | Name of the transit gateway | REQUIRED when `create_transit_gateway` is true | tf-tgw (default) |
+| `cos_instance_name` | Name of the COS instance for IBM ROKs registry | Required when `create_cos_instance` and `create_cluster` are true | tf-cos-instance (default) |
+| `openshift_cluster_name` | Name of the OpenShift cluster to create | REQUIRED when `create_cluster` is true | tf-openshift-cluster (default) |
+| `workers_per_zone` | Number of worker nodes per zone | REQUIRED when `create_cluster` is true | 1 (default) |
+| `min_worker_vcpu_count` | Minimum vCPU count for worker nodes | REQUIRED when `create_cluster` is true | 16 (default) |
+| `min_worker_memory_gb` | Minimum memory in GB for worker nodes | REQUIRED when `create_cluster` is true | 64 (default) |
+| `cluster_id_existing` | ID or name of existing OpenShift cluster | REQUIRED when `create_cluster` is false | tf-openshift-cluster |
+
+### Deployment Variables when Deploying with an existing IBM ROKs Cluster
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `cluster_id_existing` | ID or name of existing OpenShift cluster | REQUIRED when `create_cluster` is false | tf-openshift-cluster |
+
 
 ### Deployment Variables when Deploying Client VPC and Client Jumphost
 
@@ -98,16 +113,119 @@ The deployment can orchestrate any or all of the following components:
 
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
+| `client_vpc_name` | Name of the client VPC to create or use | REQUIRED when `create_client_vpc` or `create_jumphost` are true | tf-client-vpc |
+| `client_vpc_region` | IBM Cloud region for client VPC  | REQUIRED when `create_client_vpc` or `create_jumphost` are true | eu-gb |
+| `client_jumphost_name` | Name of the jumphost VSI instance | REQUEST when `create_jumphost` is true | tf-client-jumphost |
+| `ssh_key_name` | Name of an existing SSH key name to use for jumphost VSI access | test-jh |
 
-### Deployment Variables when Deploying BIG-IP Next for Kubernetes
+
+### Deployment Variables when Deploying BIG-IP Next for Kubernetes on a IBM ROKs cluster
 
 ( Feature Flag: `deploy_bnk`)
 
+Deploying BIG-IP Next for Kubernetes requires access to the F5 Artifact Repository (FAR software download) and a license JWT token (subscription license).
+
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
+| `far_repo_url` | FAR Repository URL for docker and helm registry | REQUIRED if `deploy_bnk` is true | repo.f5.com (default) |
+| `license_mode` | License operation mode (connected or disconnected) | REQUIRED if `deploy_bnk` is true | connected (default) |
+| `f5_bigip_k8s_manifest_version` | Version of f5-bigip-k8s-manifest chart to install | REQUIRED if `deploy_bnk` is true | 2.3.0-bnpp-ehf-2-3.2598.3-0.0.17 |
+
+#### Deploying with Schematic using IBM COS for F5 Artifact Repository and License JWT token
+
+When deploying with IBM Schematics the FAR container pull credentials and JWT license token should be stored in an IBM Cloud Object Storage (COS) instance, bucket, and resource. These items should be downloaded from myf5.com and places in a COS bucket for use by Schematics when deploying BIG-IP Next for Kubernetes.
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `use_cos_bucket` | Fetch FAR auth key and JWT from IBM Cloud Object Storage instead of local files | REQUIRED if `deploy_bnk` is true and using Schematics | true (default) |
+| `ibmcloud_cos_bucket_region` | IBM Cloud region where the COS bucket is located | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | us-south (default) |
+| `ibmcloud_cos_instance_name` | IBM Cloud COS instance name | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | bnk-orchestration |
+| `ibmcloud_resources_cos_bucket` | IBM Cloud COS bucket for file resources | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | bnk-schematics-resources |
+| `f5_cne_far_auth_file` | FAR auth key filename in COS bucket (.tgz file from myf5.com) | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | f5-far-auth-key.tgz |
+| `f5_cne_subscription_jwt_file` | Subscription JWT filename in COS bucket (.jwt file from myf5.com) | REQUIRED if `deploy_bnk` and `use_cos_bucket` are true | trial.jwt |
+
+As an example using the variable defaults:
+
+1) create a IBM COS instance named `bnk-orchestration`
+2) with a bucket named `bnk-schematics-resources` and then
+3) upload the FAR pull secret archive file `f5-far-auth-key.tgz` and
+4) upload the license JWT token file `trial.jwt`.
+
+```
+bnk-orchestrator # IBM COS Instance
+├── bnk-schematics-resources  # IBM COS Bucket
+│   ├── f5-far-auth-key.tgz   # IBM COS Resource (key)
+│   └── trial.jwt             # IBM COS Resource (key)
+```
 
 
-## Directory Structure
+#### Using a local file for F5 Artifact Repository and License JWT token
+
+If terraform is being used on a local machine, the FAR container pull credentials and JWT license token can be read from the local file system. The `use_cos_bucket` should be set to `false` to enable local file access to these resources.
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `far_service_account_key_path` | Terraform file system path to FAR service account key JSON file | REQUIRED if `deploy_bnk` is true and `use_cos_bucket` is false | /home/user/dev_pull_64.json |
+| `jwt_token` | JWT token for F5 license authentication | REQUIRED if `deploy_bnk` is true and `use_cos_bucket` is false | /home/user/trial.jwt |
+
+
+#### Community Cert-Manager Certificate Mangement
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `cert_manager_namespace` | Kubernetes namespace for cert-manager | | cert-manager |
+| `cert_manager_version` | Helm chart version | | v1.17.3 |
+
+
+#### F5 Lifecycle Operator (FLO) Installer
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `flo_namespace` | Namespace for F5 Lifecycle Operator | REQUIRED if `deploy_bnk` is true | f5-bnk (default) |
+
+
+#### F5 Control Plane Shared Utilities
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `utils_namespace` | Namespace for F5 utility components | REQUIRED if `deploy_bnk` is true | f5-utils (default) |
+
+
+#### F5 CIS Controller
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `bigip_username` | BIG-IP username for CIS controller login | REQUIRED if `deploy_bnk` is true | admin (default) |
+| `bigip_password` | BIG-IP password for CIS controller login | REQUIRED if `deploy_bnk` is true | admin |
+| `bigip_url` | BIG-IP URL for CIS controller login | REQUIRED if `deploy_bnk` is true | https://10.100.100.1 |
+
+
+#### Deploy CNE Instance as a Gateway Provider
+
+| Variable | Description | Required | Example |
+| -------- | ----------- | -------- | ------- |
+| `cneinstance_enabled` | Enable CNEInstance deployment | | true (default) |
+| `cluster_vpc_name` | Name of the cluster VPC | REQUIRED when `cneinstance_enabled` is true | tf-cluster-vpc (default) |
+| `cneinstance_logging_subsystem` | Enable logging subsystem | | false (default) |
+| `cneinstance_metric_subsystem` | Enable metrics subsystem for CNEInstance | | false (default) |
+| `cneinstance_firewall_acl` | Enable firewall ACL for CNEInstance | | false (default) |
+| `cneinstance_gslb_datacenter_name` | GSLB datacenter name for CNEInstance | | |
+| `cneinstance_fluentbit` | Enable Fluentbit logging for CNEInstance | | false |
+| `cneinstance_deployment_size` | Deployment size for CNEInstance | | Small |
+| `cneinstance_ibm_trusted_profile_id` | IBM Trusted Profile ID for CNEInstance authentication to orchestrate IBM ROKs and VPC routing table entries | | |
+
+
+## OCP Security Context Constraints Bindings Detail
+
+BIG-IP Next for Kubernetes required bindings grant `system:openshift:scc:privileged` for the following resources:
+
+| Module | Namespace | Service Accounts |
+|--------|-----------|------------------|
+| FLO | `f5-bnk` | `flo-f5-lifecycle-operator`, `f5-bigip-ctlr-serviceaccount`, `default` (CIS) |
+| CNEInstance | `f5-bnk` | `tmm-sa`, `f5-dssm`, `f5-downloader`, `f5-afm`, `f5-cne-controller-*`, `f5-cne-env-discovery-serviceaccount` |
+| CNEInstance | `f5-utils` | `crd-installer`, `cwc`, `f5-coremond`, `f5-rabbitmq`, `f5-observer-operator`, `f5-ipam-ctlr`, `otel-sa`, `f5-crdconversion`, `default` |
+
+
+## Project Directory Structure
 
 ```
 terraform-cloud-ibm/
@@ -201,16 +319,7 @@ terraform-cloud-ibm/
 │  - JWT + Operation Mode          │
 └──────────────────────────────────┘
 ```
-
-**OCP Security Context Constraints Bindings Detail** — all bindings grant `system:openshift:scc:privileged`:
-
-| Module | Namespace | Service Accounts |
-|--------|-----------|------------------|
-| FLO | `f5-bnk` | `flo-f5-lifecycle-operator`, `f5-bigip-ctlr-serviceaccount`, `default` (CIS) |
-| CNEInstance | `f5-bnk` | `tmm-sa`, `f5-dssm`, `f5-downloader`, `f5-afm`, `f5-cne-controller-*`, `f5-cne-env-discovery-serviceaccount` |
-| CNEInstance | `f5-utils` | `crd-installer`, `cwc`, `f5-coremond`, `f5-rabbitmq`, `f5-observer-operator`, `f5-ipam-ctlr`, `otel-sa`, `f5-crdconversion`, `default` |
-
-## Installation & Deployment
+## Local Host Installation & Deployment
 
 ### Why Five Separate Modules?
 
@@ -232,7 +341,7 @@ If you already have an OpenShift cluster running in IBM Cloud, you can skip the 
 # Skip cluster creation and use existing cluster
 create_cluster      = false
 cluster_id_existing = "YOUR_CLUSTER_ID_OR_NAME"  # Get from `ibmcloud ks clusters`
-cluster_region      = "jp-tok"                     # Region where cluster exists
+ibmcloud_cluster_region      = "jp-tok"          # Region where cluster exists
 
 # Enable BNK/FLO deployment
 deploy_bnk = true
@@ -335,6 +444,13 @@ terraform destroy -target=module.cluster -auto-approve
 - `bigip_password`: BIG-IP password for CIS controller login (sensitive)
 - `bigip_url`: BIG-IP URL for CIS controller login (https:// prefix is stripped automatically)
 - All FLO configuration variables (NAD, CNEInstance settings, etc.)
+
+**IBM IAM Trusted Profile** (created by FLO module, passed to CNEInstance):
+- `openshift_cluster_name`: Name of the OpenShift cluster — used to make the trusted profile name unique per cluster (sourced from cluster module output)
+- `openshift_cluster_crn`: CRN of the OpenShift cluster — used to link the trusted profile to the ROKS service account `f5-cne-controller-<flo_namespace>-f5-cne-controller-serviceaccount` in `flo_namespace` (sourced from cluster module output)
+- `cluster_vpc_id`: ID of the cluster VPC — grants the trusted profile Viewer and Editor IAM roles on this VPC (sourced from cluster module output)
+
+> The trusted profile is created only when `enabled = true` and `openshift_cluster_crn` is non-empty. The resulting profile ID is output as `trusted_profile_id` and automatically passed to the CNEInstance module as `cneinstance_ibm_trusted_profile_id`.
 
 **COS Bucket Integration** (fetch FAR auth key and JWT from IBM Cloud Object Storage):
 - `use_cos_bucket`: Enable fetching FAR auth key and JWT from COS instead of local files (default: `true`)

@@ -6,7 +6,7 @@
 # IBM Provider - for creating infrastructure
 provider "ibm" {
   ibmcloud_api_key = var.ibmcloud_api_key
-  region           = var.cluster_region
+  region           = var.ibmcloud_cluster_region
 }
 
 # ============================================================
@@ -28,7 +28,7 @@ provider "ibm" {
 data "ibm_container_cluster_config" "cluster_config" {
   count             = var.create_cluster || var.deploy_bnk ? 1 : 0
   cluster_name_id   = var.create_cluster ? module.cluster.cluster_id : var.cluster_id_existing
-  region            = var.cluster_region
+  region            = var.ibmcloud_cluster_region
 }
 
 # ============================================================

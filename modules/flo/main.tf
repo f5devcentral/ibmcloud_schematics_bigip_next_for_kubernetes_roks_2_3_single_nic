@@ -766,3 +766,36 @@ resource "kubernetes_manifest" "node_labeler_job" {
     kubernetes_manifest.node_labeler_binding[0]
   ]
 }
+
+# ==============================================================================
+# IBM IAM Trusted Profile for CNE Controller Service Account
+# ==============================================================================
+
+resource "ibm_iam_trusted_profile" "cne_controller" {
+  count       = local.global_enabled ? 1 : 0
+  name        = "${var.openshift_cluster_name}-f5-cne-controller-${var.flo_namespace}"
+  description = "Trusted profile for F5 CNE controller service account in namespace ${var.flo_namespace} on cluster ${var.openshift_cluster_name}"
+}
+
+resource "ibm_iam_trusted_profile_link" "cne_controller_roks" {
+  count      = local.global_enabled ? 1 : 0
+  profile_id = ibm_iam_trusted_profile.cne_controller[0].id
+  cr_type    = "ROKS_SA"
+  link {
+    crn       = var.openshift_cluster_crn
+    namespace = var.flo_namespace
+    name      = "f5-cne-controller-${var.flo_namespace}-f5-cne-controller-serviceaccount"
+  }
+  name = "f5-cne-controller-roks-link"
+}
+
+resource "ibm_iam_trusted_profile_policy" "cne_controller_vpc" {
+  count      = local.global_enabled ? 1 : 0
+  profile_id = ibm_iam_trusted_profile.cne_controller[0].id
+  roles      = ["Viewer", "Editor"]
+  resources {
+    service       = "is"
+    resource_type = "vpc"
+    resource      = var.cluster_vpc_id
+  }
+}

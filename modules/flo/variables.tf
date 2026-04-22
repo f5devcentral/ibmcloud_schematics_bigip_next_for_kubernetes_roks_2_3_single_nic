@@ -253,3 +253,25 @@ variable "f5_cne_subscription_jwt_file" {
   type        = string
   default     = "trial.jwt"
 }
+
+# ==============================================================================
+# IBM IAM Trusted Profile Variables
+# ==============================================================================
+
+variable "openshift_cluster_name" {
+  description = "Name of the OpenShift cluster (used to make the IAM trusted profile name cluster-specific)"
+  type        = string
+  default     = ""
+}
+
+variable "openshift_cluster_crn" {
+  description = "CRN of the OpenShift cluster (used to link trusted profile to ROKS service account)"
+  type        = string
+  default     = ""
+}
+
+variable "cluster_vpc_id" {
+  description = "ID of the cluster VPC (used to grant trusted profile Viewer and Editor IAM roles)"
+  type        = string
+  default     = ""
+}

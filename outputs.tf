@@ -53,6 +53,11 @@ output "cluster_vpc_crn" {
   value       = module.cluster.cluster_vpc_crn
 }
 
+output "openshift_cluster_crn" {
+  description = "CRN of the OpenShift cluster"
+  value       = module.cluster.openshift_cluster_crn
+}
+
 output "transit_gateway_id" {
   description = "ID of the transit gateway"
   value       = module.cluster.transit_gateway_id
