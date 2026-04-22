@@ -447,6 +447,13 @@ terraform destroy -target=module.cluster -auto-approve
 - `bigip_url`: BIG-IP URL for CIS controller login (https:// prefix is stripped automatically)
 - All FLO configuration variables (NAD, CNEInstance settings, etc.)
 
+**IBM IAM Trusted Profile** (created by FLO module, passed to CNEInstance):
+- `openshift_cluster_name`: Name of the OpenShift cluster — used to make the trusted profile name unique per cluster (sourced from cluster module output)
+- `openshift_cluster_crn`: CRN of the OpenShift cluster — used to link the trusted profile to the ROKS service account `f5-cne-controller-<flo_namespace>-f5-cne-controller-serviceaccount` in `flo_namespace` (sourced from cluster module output)
+- `cluster_vpc_id`: ID of the cluster VPC — grants the trusted profile Viewer and Editor IAM roles on this VPC (sourced from cluster module output)
+
+> The trusted profile is created only when `enabled = true` and `openshift_cluster_crn` is non-empty. The resulting profile ID is output as `trusted_profile_id` and automatically passed to the CNEInstance module as `cneinstance_ibm_trusted_profile_id`.
+
 **COS Bucket Integration** (fetch FAR auth key and JWT from IBM Cloud Object Storage):
 - `use_cos_bucket`: Enable fetching FAR auth key and JWT from COS instead of local files (default: `true`)
 - `ibmcloud_cos_bucket_region`: IBM Cloud region where the COS bucket is located (default: `us-south`)
