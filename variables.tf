@@ -301,12 +301,6 @@ variable "cneinstance_firewall_acl" {
   default     = false
 }
 
-variable "cneinstance_ibm_trusted_profile_id" {
-  description = "IBM Trusted Profile ID for CNEInstance authentication - used by cneinstance module"
-  type        = string
-  default     = ""
-}
-
 variable "cneinstance_gslb_datacenter_name" {
   description = "GSLB datacenter name for CNEInstance (optional for deployment) - used by cneinstance module"
   type        = string
