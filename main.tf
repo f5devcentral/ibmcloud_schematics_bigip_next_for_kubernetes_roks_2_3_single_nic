@@ -159,6 +159,11 @@ module "flo" {
   bigip_password = var.bigip_password
   bigip_url      = var.bigip_url
 
+  # Cluster identity (for IAM trusted profile)
+  openshift_cluster_name = module.cluster.cluster_name
+  openshift_cluster_crn  = module.cluster.openshift_cluster_crn
+  cluster_vpc_id         = module.cluster.cluster_vpc_id
+
   # NAD Configuration
   nad_cni_type        = ipvlan
   nad_interface_name  = ens3
@@ -217,7 +222,7 @@ module "cneinstance" {
   cneinstance_cloud_provider    = var.cneinstance_cloud_provider
   cneinstance_vpc_name          = var.cluster_vpc_name
   cneinstance_cloud_region      = var.ibmcloud_cluster_region
-  cneinstance_ibm_trusted_profile_id = var.cneinstance_ibm_trusted_profile_id
+  cneinstance_ibm_trusted_profile_id = module.flo.trusted_profile_id
   cneinstance_gslb_datacenter_name   = var.cneinstance_gslb_datacenter_name
   cneinstance_fluentbit         = var.cneinstance_fluentbit
   cneinstance_network_attachments = module.flo.cneinstance_network_attachments
