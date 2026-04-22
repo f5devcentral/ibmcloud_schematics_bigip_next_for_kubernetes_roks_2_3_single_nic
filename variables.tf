@@ -283,6 +283,48 @@ variable "cneinstance_enabled" {
   default     = true
 }
 
+variable "cneinstance_gateway_api" {
+  description = "Enable Gateway API support for CNEInstance - used by flo, cneinstance modules"
+  type        = bool
+  default     = true
+}
+
+variable "cneinstance_whole_cluster" {
+  description = "Apply CNEInstance to whole cluster - used by flo, cneinstance modules"
+  type        = bool
+  default     = true
+}
+
+variable "cneinstance_dynamic_routing" {
+  description = "Enable dynamic routing for CNEInstance - used by flo, cneinstance modules"
+  type        = bool
+  default     = false
+}
+
+variable "cneinstance_pseudocni" {
+  description = "Enable pseudo-CNI mode for CNEInstance - used by flo, cneinstance modules"
+  type        = bool
+  default     = true
+}
+
+variable "cneinstance_cloud_env" {
+  description = "Enable cloud environment for CNEInstance - used by flo, cneinstance modules"
+  type        = bool
+  default     = true
+}
+
+variable "cneinstance_env_discovery" {
+  description = "Enable environment discovery for CNEInstance - used by flo, cneinstance modules"
+  type        = bool
+  default     = false
+}
+
+variable "cneinstance_cloud_provider" {
+  description = "Cloud provider for CNEInstance (aws, azure, gcp, ibm) - used by flo, cneinstance modules"
+  type        = string
+  default     = "ibm"
+}
+
 variable "cneinstance_logging_subsystem" {
   description = "Enable logging subsystem - used by flo, cneinstance modules"
   type        = bool

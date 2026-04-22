@@ -13,10 +13,10 @@ ibmcloud_api_key = "YOUR_IBM_CLOUD_API_KEY"
 # IBM Cloud region for cluster VPC and resources
 # Common options: ca-tor (Toronto), us-south (Dallas), us-east (Washington DC),
 #                 eu-de (Frankfurt), eu-gb (London), jp-tok (Tokyo)
-cluster_region = "jp-tok"
+ibmcloud_cluster_region = "jp-tok"
 
 # IBM Cloud Resource Group name (defaults to account's default resource group)
-resource_group = "default"
+ibmcloud_resource_group = "default"
 
 # ==============================================================================
 # Cluster VPC Configuration
@@ -176,15 +176,6 @@ cneinstance_fluentbit = false
 
 # CNEInstance deployment size (Options: Small, Medium, Large)
 cneinstance_deployment_size = "Small"
-
-# VPC name for CNEInstance cloud environment (should match cluster VPC name)
-cneinstance_vpc_name = ""
-
-# Cloud region for CNEInstance (should match cluster region)
-cneinstance_cloud_region = ""
-
-# IBM Trusted Profile ID for authentication
-cneinstance_ibm_trusted_profile_id = ""
 
 # GSLB datacenter name
 cneinstance_gslb_datacenter_name = ""
