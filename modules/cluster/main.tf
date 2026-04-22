@@ -467,163 +467,11 @@ resource "ibm_container_vpc_cluster" "openshift_cluster" {
   ]
 }
 
-# Wait for cluster to be fully ready: state, workers, ingress, then operators
-resource "null_resource" "wait_for_cluster_ready" {
-  count = var.create_cluster && !var.skip_cluster_health_check ? 1 : 0
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      #!/bin/bash
-
-      CLUSTER_ID="${ibm_container_vpc_cluster.openshift_cluster[0].id}"
-      MAX_ATTEMPTS=15
-      SLEEP_INTERVAL=10
-
-      echo "=========================================="
-      echo "Starting Cluster Health Validation"
-      echo "Cluster ID: $CLUSTER_ID"
-      echo "=========================================="
-
-      check_cluster_state() {
-        ibmcloud ks cluster get --cluster "$CLUSTER_ID" --output json 2>/dev/null | python3 -c "import sys, json; print(json.load(sys.stdin).get('state', 'pending'))" 2>/dev/null || echo "pending"
-      }
-
-      check_workers() {
-        ibmcloud ks workers --cluster "$CLUSTER_ID" --output json 2>/dev/null | python3 -c "
-import sys, json
-try:
-    workers = json.load(sys.stdin)
-    ready = sum(1 for w in workers if w.get('health', {}).get('state') == 'normal' and w.get('health', {}).get('message') == 'Ready')
-    print(ready)
-except:
-    print('0')
-" 2>/dev/null || echo "0"
-      }
-
-      check_ingress() {
-        ibmcloud ks cluster get --cluster "$CLUSTER_ID" --output json 2>/dev/null | python3 -c "
-import sys, json
-try:
-    data = json.load(sys.stdin)
-    status = data.get('ingress', {}).get('status', data.get('ingressStatus', 'unknown'))
-    print(status)
-except:
-    print('unknown')
-" 2>/dev/null || echo "unknown"
-      }
-
-      echo ""
-      echo "Phase 1: Waiting for cluster state to be 'normal'..."
-      for i in $(seq 1 $MAX_ATTEMPTS); do
-        STATE=$(check_cluster_state)
-        echo "[Attempt $i/$MAX_ATTEMPTS] Cluster state: $STATE"
-        if [ "$STATE" = "normal" ]; then
-          echo "✓ Cluster state is normal"
-          break
-        fi
-        if [ $i -eq $MAX_ATTEMPTS ]; then
-          echo "ERROR: Cluster did not reach 'normal' state within timeout"
-        fi
-        sleep $SLEEP_INTERVAL
-      done
-
-      echo ""
-      echo "Phase 2: Waiting for all worker nodes to be ready..."
-      EXPECTED_WORKERS=3
-      WORKERS_FOUND=false
-      for i in $(seq 1 $MAX_ATTEMPTS); do
-        WORKERS_READY=$(check_workers)
-        echo "[Attempt $i/$MAX_ATTEMPTS] Workers ready: $WORKERS_READY/$EXPECTED_WORKERS"
-        if [ "$WORKERS_READY" -ge "$EXPECTED_WORKERS" ]; then
-          echo "✓ All $EXPECTED_WORKERS workers are ready"
-          WORKERS_FOUND=true
-          break
-        fi
-        sleep $SLEEP_INTERVAL
-      done
-      if [ "$WORKERS_FOUND" = "false" ]; then
-        echo "WARNING: Not all workers ready within timeout (found $WORKERS_READY/$EXPECTED_WORKERS)"
-      fi
-
-      echo ""
-      echo "Phase 3: Waiting for Ingress to be healthy..."
-      INGRESS_FOUND=false
-      for i in $(seq 1 $MAX_ATTEMPTS); do
-        INGRESS_STATUS=$(check_ingress)
-        echo "[Attempt $i/$MAX_ATTEMPTS] Ingress status: $INGRESS_STATUS"
-        if [ "$INGRESS_STATUS" = "healthy" ]; then
-          echo "✓ Ingress is healthy"
-          INGRESS_FOUND=true
-          break
-        fi
-        sleep $SLEEP_INTERVAL
-      done
-      if [ "$INGRESS_FOUND" = "false" ]; then
-        echo "WARNING: Ingress did not reach 'healthy' state (current: $INGRESS_STATUS)"
-        echo "This may resolve automatically. Check 'ibmcloud ks ingress status-report get' after apply."
-      fi
-
-      echo ""
-      echo "Phase 4: Validating cluster operators..."
-      ibmcloud ks cluster config --cluster $CLUSTER_ID --admin > /dev/null 2>&1
-      if ! command -v kubectl &> /dev/null; then
-        echo "WARNING: kubectl not found. Skipping operator validation."
-      else
-        MAX_ATTEMPTS=20
-        for i in $(seq 1 $MAX_ATTEMPTS); do
-          echo "[Attempt $i/$MAX_ATTEMPTS] Checking cluster operators..."
-          if ! kubectl get co &> /dev/null; then
-            echo "  API not ready yet, waiting..."
-            sleep 30
-            continue
-          fi
-          DEGRADED=$(kubectl get co -o json 2>/dev/null | python3 -c "
-import sys, json
-try:
-    operators = json.load(sys.stdin)['items']
-    degraded = [op['metadata']['name'] for op in operators
-                if any(c.get('type') == 'Degraded' and c.get('status') == 'True'
-                       for c in op.get('status', {}).get('conditions', []))]
-    print(len(degraded))
-except:
-    print('999')
-" 2>/dev/null || echo "999")
-          UNAVAILABLE=$(kubectl get co -o json 2>/dev/null | python3 -c "
-import sys, json
-try:
-    operators = json.load(sys.stdin)['items']
-    unavailable = [op['metadata']['name'] for op in operators
-                   if any(c.get('type') == 'Available' and c.get('status') == 'False'
-                          for c in op.get('status', {}).get('conditions', []))]
-    print(len(unavailable))
-except:
-    print('999')
-" 2>/dev/null || echo "999")
-          echo "  Degraded: $DEGRADED | Unavailable: $UNAVAILABLE"
-          if [ "$DEGRADED" = "0" ] && [ "$UNAVAILABLE" = "0" ]; then
-            echo "✓ All cluster operators are healthy!"
-            kubectl get co 2>/dev/null | head -10
-            break
-          fi
-          if [ $i -eq $MAX_ATTEMPTS ]; then
-            echo "WARNING: Some operators are still not ready after timeout"
-            kubectl get co 2>/dev/null || echo "Unable to query operators"
-          fi
-          sleep 30
-        done
-      fi
-
-      echo ""
-      echo "=========================================="
-      echo "Cluster Ready"
-      echo "State: $(check_cluster_state) | Workers: $(check_workers)/$EXPECTED_WORKERS | Ingress: $(check_ingress)"
-      echo "=========================================="
-      exit 0
-
-    EOT
-  }
-
-  depends_on = [ibm_container_vpc_cluster.openshift_cluster]
+# Look up existing cluster when not creating a new one
+data "ibm_container_vpc_cluster" "existing_cluster" {
+  count             = var.create_cluster ? 0 : 1
+  name              = var.openshift_cluster_name
+  resource_group_id = data.ibm_resource_group.resource_group.id
 }
 
 # Get worker nodes details
@@ -632,7 +480,7 @@ data "ibm_container_vpc_cluster" "cluster_info" {
   name              = ibm_container_vpc_cluster.openshift_cluster[0].name
   resource_group_id = data.ibm_resource_group.resource_group.id
 
-  depends_on = [null_resource.wait_for_cluster_ready, ibm_container_vpc_cluster.openshift_cluster]
+  depends_on = [ibm_container_vpc_cluster.openshift_cluster]
 }
 
 # Get the cluster security group by name pattern kube-<cluster_id>

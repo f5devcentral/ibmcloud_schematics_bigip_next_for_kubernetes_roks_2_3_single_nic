@@ -10,12 +10,6 @@ variable "cert_manager_crd_ready" {
   default     = null
 }
 
-variable "far_service_account_key_path" {
-  description = "Path to FAR service account key JSON file (e.g., dev_pull_64.json)"
-  type        = string
-  default     = "/home/dev/dev_pull_64.json"
-}
-
 variable "far_repo_url" {
   description = "FAR Repository URL for docker and helm registry"
   type        = string

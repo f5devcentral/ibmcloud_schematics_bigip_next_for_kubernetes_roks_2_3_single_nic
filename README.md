@@ -161,11 +161,10 @@ bnk-orchestrator # IBM COS Instance
 
 #### Using a local file for F5 Artifact Repository and License JWT token
 
-If terraform is being used on a local machine, the FAR container pull credentials and JWT license token can be read from the local file system. The `use_cos_bucket` should be set to `false` to enable local file access to these resources.
+If terraform is being used on a local machine, the JWT license token can be provided directly. The `use_cos_bucket` should be set to `false` to skip COS-based credential retrieval.
 
 | Variable | Description | Required | Example |
 | -------- | ----------- | -------- | ------- |
-| `far_service_account_key_path` | Terraform file system path to FAR service account key JSON file | REQUIRED if `deploy_bnk` is true and `use_cos_bucket` is false | /home/user/dev_pull_64.json |
 | `jwt_token` | JWT token for F5 license authentication | REQUIRED if `deploy_bnk` is true and `use_cos_bucket` is false | /home/user/trial.jwt |
 
 
@@ -426,7 +425,6 @@ terraform destroy -target=module.cluster -auto-approve
 - `workers_per_zone`: Number of worker nodes per zone (default: `1`)
 - `min_worker_vcpu_count` / `min_worker_memory_gb`: Minimum worker flavor requirements
 - `create_cluster`, `create_client_vpc`, `create_jumphost`, `create_transit_gateway`, `create_cos_instance`: Feature flags
-- `skip_cluster_health_check`: Skip post-create health validation (default: `true`)
 
 #### Cert-Manager Module
 - `enabled`: Enable/disable cert-manager deployment (controlled by deploy_bnk)
@@ -477,7 +475,7 @@ cluster_region   = "jp-tok"
 
 # FAR Registry
 far_repo_url = "repo.f5.com"
-#far_service_account_key_path = "/home/dev/dev_pull_64.json"
+
 
 # COS Bucket — fetch FAR auth key and JWT from IBM COS
 use_cos_bucket                = true

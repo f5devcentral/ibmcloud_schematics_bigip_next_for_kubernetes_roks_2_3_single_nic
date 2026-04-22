@@ -169,11 +169,6 @@ variable "workers_per_zone" {
     error_message = "workers_per_zone must be between 1 and 10"
   }
 }
-variable "skip_cluster_health_check" {
-  description = "Skip cluster health validation to speed up provisioning (not recommended for production)"
-  type        = bool
-  default     = true
-}
 variable "cos_instance_name" {
   description = "Cloud Object Storage instance name for OpenShift registry (defaults to cluster_name-cos)"
   type        = string

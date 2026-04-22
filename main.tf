@@ -134,7 +134,6 @@ module "flo" {
 
   cert_manager_crd_ready = module.cert_manager.crd_ready
 
-  far_service_account_key_path = var.far_service_account_key_path
   far_repo_url                 = var.far_repo_url
 
   # COS Bucket Configuration

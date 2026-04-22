@@ -172,7 +172,7 @@ locals {
         enabled = true
       }
       maintenanceMode = {
-        enabled = true
+        enabled = false
       }
       tmm = {
         env = [

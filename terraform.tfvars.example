@@ -125,8 +125,7 @@ f5_bigip_k8s_manifest_version = "2.3.0-bnpp-ehf-2-3.2598.3-0.0.17"
 
 # COS Bucket Configuration (Optional - fetch FAR auth key and JWT from COS)
 # Set use_cos_bucket = true to fetch FAR auth key and JWT from COS instead of local files
-# When enabled, far_service_account_key_path and jwt_token are ignored;
-# credentials are fetched from the COS bucket via IAM token exchange and S3 REST API.
+# When enabled, credentials are fetched from the COS bucket via IAM token exchange and S3 REST API.
 use_cos_bucket                = true
 ibmcloud_cos_bucket_region    = "us-south"
 ibmcloud_cos_instance_name    = "bnk-orchestration"
@@ -134,9 +133,6 @@ ibmcloud_resources_cos_bucket = "bnk-schematics-resources"
 f5_cne_far_auth_file          = "f5-far-auth-key.tgz"
 f5_cne_subscription_jwt_file  = "trial.jwt"
 
-# FAR (F5 Artifact Repository) Configuration
-# Path to local file system FAR service account key JSON file (Optional if use_cos_bucket set to true )
-# far_service_account_key_path = "/path/to/FAR/Service/Account"
 # JWT token for F5 licensing (Optional if use_cos_bucket set to true)
 # jwt_token = "your-jwt-token-here"
 

@@ -221,12 +221,6 @@ variable "f5_cne_subscription_jwt_file" {
 
 # Local file FAR and JWT
 
-variable "far_service_account_key_path" {
-  description = "Path to FAR service account key JSON file - used by flo module"
-  type        = string
-  default     = "/home/dev/dev_pull_64.json"
-}
-
 variable "jwt_token" {
   description = "JWT token for F5 license authentication (if not retrieved from IBM COS) - used by flo, license modules"
   type        = string

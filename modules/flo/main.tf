@@ -3,7 +3,7 @@ locals {
   
   far_registry_hostname = replace(var.far_repo_url, "https://", "")
   image_repository      = "${local.far_registry_hostname}/images"
-  far_service_account_b64 = local.global_enabled ? (var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : data.local_file.far_service_account_local[0].content) : ""
+  far_service_account_b64 = local.global_enabled && var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : ""
   far_auth_value = base64encode("_json_key_base64:${local.far_service_account_b64}")
   cos_jwt_token = local.global_enabled && var.use_cos_bucket ? trimspace(data.http.jwt_download[0].response_body) : var.jwt_token
   far_docker_config_json = replace(
@@ -119,15 +119,6 @@ locals {
     }
 
   }
-}
-
-# ==============================================================================
-# FAR Service Account Key - Local File (when use_cos_bucket = false)
-# ==============================================================================
-
-data "local_file" "far_service_account_local" {
-  count    = local.global_enabled && !var.use_cos_bucket ? 1 : 0
-  filename = var.far_service_account_key_path
 }
 
 # ==============================================================================
@@ -773,7 +764,14 @@ resource "ibm_iam_trusted_profile_policy" "cne_controller_vpc" {
   count      = local.global_enabled ? 1 : 0
   profile_id = ibm_iam_trusted_profile.cne_controller[0].id
   roles      = ["Viewer", "Editor"]
-  resources {
-    service = "is"
+
+  resource_attributes {
+    name  = "serviceName"
+    value = "is"
+  }
+
+  resource_attributes {
+    name  = "vpcId"
+    value = var.cluster_vpc_id
   }
 }
