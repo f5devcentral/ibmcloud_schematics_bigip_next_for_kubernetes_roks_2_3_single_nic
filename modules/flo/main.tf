@@ -4,9 +4,9 @@ locals {
   far_registry_hostname = replace(var.far_repo_url, "https://", "")
   image_repository      = "${local.far_registry_hostname}/images"
   far_service_account_key_file = var.use_cos_bucket ? "/tmp/${local.far_extracted_filename}" : var.far_service_account_key_path
-  far_service_account_b64 = var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : data.local_file.far_service_account_local[0].content
+  far_service_account_b64 = local.global_enabled ? (var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : data.local_file.far_service_account_local[0].content) : ""
   far_auth_value = base64encode("_json_key_base64:${local.far_service_account_b64}")
-  cos_jwt_token = var.use_cos_bucket ? trimspace(data.http.jwt_download[0].response_body) : ""
+  cos_jwt_token = local.global_enabled && var.use_cos_bucket ? trimspace(data.http.jwt_download[0].response_body) : ""
   far_docker_config_json = replace(
     jsonencode({
       auths = {
@@ -283,6 +283,7 @@ resource "kubernetes_manifest" "nad_crd" {
 # Create NetworkAttachmentDefinition in FLO namespace using kubernetes_manifest
 resource "kubernetes_manifest" "network_attachment_definition" {
   provider = kubernetes
+  count    = local.global_enabled ? 1 : 0
 
   manifest = {
     apiVersion = "k8s.cni.cncf.io/v1"
@@ -304,6 +305,7 @@ resource "kubernetes_manifest" "network_attachment_definition" {
 # Create macvlan NetworkAttachmentDefinition
 resource "kubernetes_manifest" "macvlan_network_attachment_definition" {
   provider = kubernetes
+  count    = local.global_enabled ? 1 : 0
 
   manifest = {
     apiVersion = "k8s.cni.cncf.io/v1"
