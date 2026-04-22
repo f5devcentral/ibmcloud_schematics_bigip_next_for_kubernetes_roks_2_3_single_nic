@@ -293,34 +293,10 @@ variable "cneinstance_enabled" {
   default     = true
 }
 
-variable "cneinstance_logging_subsystem" {
-  description = "Enable logging subsystem - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_metric_subsystem" {
-  description = "Enable metrics subsystem for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_firewall_acl" {
-  description = "Enable firewall ACL for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
-}
-
 variable "cneinstance_gslb_datacenter_name" {
   description = "GSLB datacenter name for CNEInstance (optional for deployment) - used by cneinstance module"
   type        = string
   default     = ""
-}
-
-variable "cneinstance_fluentbit" {
-  description = "Enable Fluentbit logging for CNEInstance - used by flo, cneinstance modules"
-  type        = bool
-  default     = false
 }
 
 variable "cneinstance_deployment_size" {

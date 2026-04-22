@@ -205,11 +205,10 @@ If terraform is being used on a local machine, the FAR container pull credential
 | -------- | ----------- | -------- | ------- |
 | `cneinstance_enabled` | Enable CNEInstance deployment | | true (default) |
 | `cluster_vpc_name` | Name of the cluster VPC | REQUIRED when `cneinstance_enabled` is true | tf-cluster-vpc (default) |
-| `cneinstance_logging_subsystem` | Enable logging subsystem | | false (default) |
-| `cneinstance_metric_subsystem` | Enable metrics subsystem for CNEInstance | | false (default) |
-| `cneinstance_firewall_acl` | Enable firewall ACL for CNEInstance | | false (default) |
+| `cneinstance_logging_subsystem` | Enable logging subsystem | | true (default) |
+| `cneinstance_metric_subsystem` | Enable metrics subsystem for CNEInstance | | true (default) |
+| `cneinstance_firewall_acl` | Enable firewall ACL for CNEInstance | | true (default) |
 | `cneinstance_gslb_datacenter_name` | GSLB datacenter name for CNEInstance | | |
-| `cneinstance_fluentbit` | Enable Fluentbit logging for CNEInstance | | false |
 | `cneinstance_deployment_size` | Deployment size for CNEInstance | | Small |
 | `cneinstance_ibm_trusted_profile_id` | IBM Trusted Profile ID for CNEInstance authentication to orchestrate IBM ROKs and VPC routing table entries | | |
 
@@ -502,10 +501,6 @@ bigip_url      = "https://your-bigip-url"
 f5_bigip_k8s_manifest_version = "YOUR_K8S_MANIFEST_VERSION"
 
 # CNEInstance
-cneinstance_logging_subsystem      = ""
-cneinstance_metric_subsystem       = false
-cneinstance_firewall_acl           = false
-cneinstance_fluentbit              = false
 cneinstance_deployment_size        = "Small"
 cneinstance_vpc_name               = ""
 cneinstance_cloud_region           = ""

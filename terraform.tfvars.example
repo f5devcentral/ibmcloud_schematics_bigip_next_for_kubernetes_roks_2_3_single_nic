@@ -173,20 +173,8 @@ bigip_url      = "https://your-bigip-url"
 # Create the CNEInstance CRD
 cneinstance_enabled = true
 
-# Enable logging subsystem
-cneinstance_logging_subsystem = false
-
-# Enable metric subsystem
-cneinstance_metric_subsystem = false
-
-# Enable firewall ACL (AFM)
-cneinstance_firewall_acl = false
-
 # GSLB datacenter name
 cneinstance_gslb_datacenter_name = ""
-
-# Enable Fluentbit for logging
-cneinstance_fluentbit = false
 
 # CNEInstance deployment size (Options: Small, Medium, Large)
 cneinstance_deployment_size = "Small"

@@ -6,7 +6,7 @@ locals {
   far_service_account_key_file = var.use_cos_bucket ? "/tmp/${local.far_extracted_filename}" : var.far_service_account_key_path
   far_service_account_b64 = local.global_enabled ? (var.use_cos_bucket ? data.local_file.cne_pull_64_json_file[0].content : data.local_file.far_service_account_local[0].content) : ""
   far_auth_value = base64encode("_json_key_base64:${local.far_service_account_b64}")
-  cos_jwt_token = local.global_enabled && var.use_cos_bucket ? trimspace(data.http.jwt_download[0].response_body) : ""
+  cos_jwt_token = local.global_enabled && var.use_cos_bucket ? trimspace(data.http.jwt_download[0].response_body) : var.jwt_token
   far_docker_config_json = replace(
     jsonencode({
       auths = {
@@ -91,10 +91,6 @@ locals {
     image = {
       repository = local.image_repository
       pullPolicy = "Always"
-    }
-
-    fluentbit_sidecar = {
-      enabled = var.cneinstance_fluentbit
     }
 
     "f5-spk-crds-common" = {
@@ -249,10 +245,6 @@ data "local_file" "cne_pull_64_json_file" {
 resource "null_resource" "registry_authentication" {
   count = local.global_enabled ? 1 : 0
   
-  provisioner "local-exec" {
-    command = "cat ${local.far_service_account_key_file} | docker login -u _json_key_base64 --password-stdin ${var.far_repo_url}"
-  }
-
   provisioner "local-exec" {
     command = "cat ${local.far_service_account_key_file} | helm registry login -u _json_key_base64 --password-stdin ${var.far_repo_url}"
   }

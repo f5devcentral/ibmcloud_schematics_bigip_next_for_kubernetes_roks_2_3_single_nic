@@ -133,12 +133,6 @@ variable "cneinstance_gslb_datacenter_name" {
   default     = ""
 }
 
-variable "cneinstance_fluentbit" {
-  description = "Enable Fluentbit sidecar"
-  type        = bool
-  default     = false
-}
-
 variable "cneinstance_network_attachments" {
   description = "Network attachment definitions for CNEInstance (computed from NAD configuration)"
   type        = list(string)

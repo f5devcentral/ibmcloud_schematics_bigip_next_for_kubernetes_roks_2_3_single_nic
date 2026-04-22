@@ -78,17 +78,17 @@ output "manifest_download_dir" {
 
 output "cneinstance_enabled" {
   description = "Whether CNEInstance was created"
-  value       = var.cneinstance_enabled
+  value       = var.enabled
 }
 
 output "cneinstance_name" {
   description = "Name of the CNEInstance resource"
-  value       = var.cneinstance_enabled ? "${var.flo_namespace}-f5-cne-controller" : "N/A"
+  value       = var.enabled ? "${var.flo_namespace}-f5-cne-controller" : "N/A"
 }
 
 output "cneinstance_network_attachments" {
   description = "Network attachments configured for CNEInstance"
-  value       = var.cneinstance_enabled ? local.cneinstance_network_attachments : []
+  value       = var.enabled ? local.cneinstance_network_attachments : []
 }
 
 output "nodes_labeled" {

@@ -170,23 +170,8 @@ module "flo" {
   nad_interface_name  = "ens3"
   nad_ipvlan_mode     = "l2"
 
-  # CNEInstance Configuration
-  cneinstance_enabled             = var.cneinstance_enabled
-  cneinstance_gateway_api         = true
-  cneinstance_whole_cluster       = true
-  cneinstance_logging_subsystem   = var.cneinstance_logging_subsystem
-  cneinstance_metric_subsystem    = var.cneinstance_metric_subsystem
-  cneinstance_dynamic_routing     = false
-  cneinstance_firewall_acl        = var.cneinstance_firewall_acl
-  cneinstance_pseudocni           = true
-  cneinstance_cloud_env           = true
-  cneinstance_env_discovery       = false
-  cneinstance_cloud_provider      = "ibm"
-  cneinstance_fluentbit           = var.cneinstance_fluentbit
-
   # Certificate Manager Configuration
   cert_manager_namespace = var.cert_manager_namespace
-  cert_manager_version   = var.cert_manager_version
 }
 
 # ============================================================
@@ -212,11 +197,11 @@ module "cneinstance" {
   f5_bigip_k8s_manifest_version = var.f5_bigip_k8s_manifest_version
   cneinstance_gateway_api       = true
   cneinstance_whole_cluster     = true
-  cneinstance_logging_subsystem = var.cneinstance_logging_subsystem
-  cneinstance_metric_subsystem  = var.cneinstance_metric_subsystem
+  cneinstance_logging_subsystem = true
+  cneinstance_metric_subsystem  = true
   cneinstance_deployment_size   = var.cneinstance_deployment_size
   cneinstance_dynamic_routing   = false
-  cneinstance_firewall_acl      = var.cneinstance_firewall_acl
+  cneinstance_firewall_acl      = true
   cneinstance_pseudocni         = true
   cneinstance_env_discovery     = false
   cneinstance_cloud_env         = true
@@ -225,7 +210,6 @@ module "cneinstance" {
   cneinstance_cloud_region      = var.ibmcloud_cluster_region
   cneinstance_ibm_trusted_profile_id = module.flo.trusted_profile_id
   cneinstance_gslb_datacenter_name   = var.cneinstance_gslb_datacenter_name
-  cneinstance_fluentbit         = var.cneinstance_fluentbit
   cneinstance_network_attachments = module.flo.cneinstance_network_attachments
 
   cluster_issuer_name = module.flo.cluster_issuer_name

@@ -28,12 +28,6 @@ variable "cert_manager_namespace" {
   default     = "cert-manager"
 }
 
-variable "cert_manager_version" {
-  description = "Version of cert-manager to install"
-  type        = string
-  default     = "v1.16.1"
-}
-
 # F5 BIG-IP K8s Manifest Variables
 variable "f5_bigip_k8s_manifest_version" {
   description = "Version of f5-bigip-k8s-manifest chart (FLO version will be extracted from this)"
@@ -120,85 +114,6 @@ variable "nad_ipvlan_address" {
   description = "Static IP address with CIDR for IPVLAN (e.g., 10.10.1.1/24) - only used when nad_cni_type is ipvlan"
   type        = string
   default     = "10.10.1.1/24"
-}
-
-# CNEInstance Variables
-variable "cneinstance_enabled" {
-  description = "Enable CNEInstance CR creation"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_gateway_api" {
-  description = "Enable Gateway API support"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_whole_cluster" {
-  description = "Enable whole cluster mode"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_logging_subsystem" {
-  description = "Enable logging subsystem"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_metric_subsystem" {
-  description = "Enable metric subsystem"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_dynamic_routing" {
-  description = "Enable dynamic routing"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_firewall_acl" {
-  description = "Enable firewall ACL (AFM)"
-  type        = bool
-  default     = false
-}
-
-variable "cneinstance_pseudocni" {
-  description = "Enable PseudoCNI"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_cloud_provider" {
-  description = "Cloud provider (aws, azure, gcp, generic)"
-  type        = string
-  default     = "ibm"
-}
-
-variable "cneinstance_fluentbit" {
-  description = "Enable Fluentbit for logging"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_deployment_size" {
-  description = "Deployment size (Small, Medium, Large)"
-  type        = string
-  default     = "Small"
-}
-
-variable "cneinstance_cloud_env" {
-  description = "Enable cloud environment mode"
-  type        = bool
-  default     = true
-}
-
-variable "cneinstance_env_discovery" {
-  description = "Enable environment discovery in CNEInstance"
-  type        = bool
-  default     = false
 }
 
 # ==============================================================================
