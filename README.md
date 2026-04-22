@@ -216,7 +216,7 @@ If terraform is being used on a local machine, the FAR container pull credential
 
 ## OCP Security Context Constraints Bindings Detail
 
-all bindings grant `system:openshift:scc:privileged`:
+BIG-IP Next for Kubernetes required bindings grant `system:openshift:scc:privileged` for the following resources:
 
 | Module | Namespace | Service Accounts |
 |--------|-----------|------------------|
@@ -341,7 +341,7 @@ If you already have an OpenShift cluster running in IBM Cloud, you can skip the 
 # Skip cluster creation and use existing cluster
 create_cluster      = false
 cluster_id_existing = "YOUR_CLUSTER_ID_OR_NAME"  # Get from `ibmcloud ks clusters`
-cluster_region      = "jp-tok"                     # Region where cluster exists
+ibmcloud_cluster_region      = "jp-tok"          # Region where cluster exists
 
 # Enable BNK/FLO deployment
 deploy_bnk = true
