@@ -220,8 +220,8 @@ module "cneinstance" {
   cneinstance_env_discovery     = var.cneinstance_env_discovery
   cneinstance_cloud_env         = var.cneinstance_cloud_env
   cneinstance_cloud_provider    = var.cneinstance_cloud_provider
-  cneinstance_vpc_name          = var.cluster_vpc_name
-  cneinstance_cloud_region      = var.ibmcloud_cluster_region
+  cneinstance_vpc_name               = var.cluster_vpc_name
+  cneinstance_cloud_region           = var.ibmcloud_cluster_region
   cneinstance_ibm_trusted_profile_id = module.flo.trusted_profile_id
   cneinstance_gslb_datacenter_name   = var.cneinstance_gslb_datacenter_name
   cneinstance_fluentbit         = var.cneinstance_fluentbit
