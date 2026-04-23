@@ -89,6 +89,30 @@ module "cluster" {
 # ============================================================
 
 # ============================================================
+# Delete Gateway API Admission Policy
+# ============================================================
+# Removes the OpenShift ingress operator's validating admission policy
+# binding that can block Gateway API CRD operations.
+# Uses curl against the Kubernetes API for Schematics compatibility
+# (kubectl is not available in Schematics runtime).
+
+resource "null_resource" "delete_gatewayapi_admission_policy" {
+  count = var.create_cluster || var.deploy_bnk ? 1 : 0
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      curl -sk \
+        -X DELETE \
+        -H "Authorization: Bearer ${data.ibm_container_cluster_config.cluster_config[0].token}" \
+        "${data.ibm_container_cluster_config.cluster_config[0].host}/apis/admissionregistration.k8s.io/v1/validatingadmissionpolicybindings/openshift-ingress-operator-gatewayapi-crd-admission" \
+        -o /dev/null -w "%%{http_code}" || true
+    EOT
+  }
+
+  depends_on = [data.ibm_container_cluster_config.cluster_config]
+}
+
+# ============================================================
 # Module: Cert-Manager
 # ============================================================
 # Deploys cert-manager to handle certificate lifecycle management
